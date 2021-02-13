@@ -1,6 +1,3 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
 name: Munki
 
 on:
@@ -10,9 +7,9 @@ on:
     branches: [ universal2 ]
 
 jobs:
+
   lint:
     name: Syntax Check
-    # straight up template from github, tysm
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -26,11 +23,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8
     - name: Lint
-      run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --ignore=E501 --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-  Build:
-    runs-on: macos-latest
+      run: git diff HEAD^ | flake8 --diff --ignore=E501
+
+  build:
+    name: Build Package
+    needs: lint
+    runs-on: macos-11.0
     steps:
       - name: Checkout
         uses: actions/checkout@v2
