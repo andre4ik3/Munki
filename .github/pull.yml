@@ -1,0 +1,10 @@
+version: "1"
+rules:
+  - base: universal2
+    upstream: munki:universal2
+    mergeMethod: rebase
+    mergeUnstable: false
+    conflictReviewers:
+      - andre4ik3
+label: "⤵️ Upstream Merge"
+conflictLabel: "🛑 Merge Conflict"
