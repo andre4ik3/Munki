@@ -21,7 +21,7 @@ class MainWindowController: NSWindowController, NSWindowDelegate, WKNavigationDe
     var wkContentController = WKUserContentController()
     
     let items = [["title": "Software", "icon": "AllItemsTemplate"],
-                 ["title": "Categories", "icon": "toolbarCategoriesTemplate"],
+                 ["title": "Categories", "icon": "NSIconViewTemplate"],
                  ["title": "My Items", "icon": "MyStuffTemplate"],
                  ["title": "Updates", "icon": "updatesTemplate"]]
     
