@@ -1,0 +1,8 @@
+os: osx
+arch: arm64
+language: python
+python: "3.9"
+install:
+  - pip3 install flake8 pep8
+script:
+  - git diff HEAD^ | flake8 --diff --ignore=E501
