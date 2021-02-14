@@ -1,3 +1,4 @@
+wheel
 cffi
 --no-binary cffi
 pyobjc==7.0.1
