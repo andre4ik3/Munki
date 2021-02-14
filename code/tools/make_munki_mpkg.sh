@@ -422,9 +422,9 @@ chmod +x "$COREROOT/usr/local/munki"
 
 # make paths.d file
 mkdir -p "$COREROOT/private/etc/paths.d"
-echo "/usr/local/munki" > "$COREROOT/private/etc/paths.d/munki"
+echo "/usr/local/munki" > "$COREROOT/private/etc/paths.d/100-munki"
 chmod -R 755 "$COREROOT/private"
-chmod 644 "$COREROOT/private/etc/paths.d/munki"
+chmod 744 "$COREROOT/private/etc/paths.d/munki"
 
 # Create directory structure for /Library/Managed Installs.
 mkdir -m 1775 "$COREROOT/Library"
