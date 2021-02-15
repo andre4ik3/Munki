@@ -440,7 +440,7 @@
                                 </scroller>
                             </scrollView>
                             <progressIndicator wantsLayer="YES" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" maxValue="100" displayedWhenStopped="NO" bezeled="NO" indeterminate="YES" controlSize="small" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="Ti6-HC-kVU">
-                                <rect key="frame" x="180" y="472" width="16" height="16"/>
+                                <rect key="frame" x="180" y="465" width="16" height="16"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                             </progressIndicator>
                             <searchField wantsLayer="YES" verticalHuggingPriority="750" fixedFrame="YES" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="0L3-LH-chu">
@@ -459,13 +459,13 @@
                     </visualEffectView>
                 </subviews>
             </view>
-            <toolbar key="toolbar" implicitIdentifier="01F12A09-E3F0-41FE-B53E-F9ACD516C429" autosavesConfiguration="NO" allowsUserCustomization="NO" showsBaselineSeparator="NO" displayMode="iconAndLabel" sizeMode="regular" id="oGN-XQ-Sw0">
+            <toolbar key="toolbar" implicitIdentifier="647F4727-2FBE-4670-AB61-21B793B4ABDC" autosavesConfiguration="NO" allowsUserCustomization="NO" showsBaselineSeparator="NO" displayMode="iconAndLabel" sizeMode="regular" id="8Vo-0V-1Mn">
                 <allowedToolbarItems>
-                    <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="5xc-vd-GQs"/>
-                    <toolbarItem implicitItemIdentifier="NSToolbarShowFontsItem" id="Aun-N0-QXi"/>
-                    <toolbarItem implicitItemIdentifier="NSToolbarPrintItem" id="WDy-XN-Pg9"/>
-                    <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="lQM-Bs-4gn"/>
-                    <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="uVN-A9-qGq"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarShowColorsItem" id="kl2-7h-9Ww"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarShowFontsItem" id="sn0-Qi-sxo"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarPrintItem" id="KgI-VA-W86"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarSpaceItem" id="CP9-8Q-egP"/>
+                    <toolbarItem implicitItemIdentifier="NSToolbarFlexibleSpaceItem" id="g7z-aL-iCO"/>
                 </allowedToolbarItems>
                 <defaultToolbarItems/>
             </toolbar>
