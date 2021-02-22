@@ -38,6 +38,7 @@ except ImportError:
 # No name 'Foo' in module 'Bar' warnings. Disable them.
 # pylint: disable=E0611
 from Foundation import NSDate
+
 # pylint: enable=E0611
 
 from . import dist
@@ -61,21 +62,25 @@ from .. import updatecheck
 from .. import FoundationPlist
 
 
-INSTALLHISTORY_PLIST = '/Library/Receipts/InstallHistory.plist'
+INSTALLHISTORY_PLIST = "/Library/Receipts/InstallHistory.plist"
 
 
 def softwareupdated_installhistory(start_date=None, end_date=None):
-    '''Returns softwareupdated items from InstallHistory.plist that are
-    within the given date range. (dates must be NSDates)'''
+    """Returns softwareupdated items from InstallHistory.plist that are
+    within the given date range. (dates must be NSDates)"""
     start_date = start_date or NSDate.distantPast()
     end_date = end_date or NSDate.distantFuture()
     try:
         installhistory = FoundationPlist.readPlist(INSTALLHISTORY_PLIST)
     except FoundationPlist.FoundationPlistException:
         return []
-    return [item for item in installhistory
-            if item.get('processName') == 'softwareupdated'
-            and item['date'] >= start_date and item['date'] <= end_date]
+    return [
+        item
+        for item in installhistory
+        if item.get("processName") == "softwareupdated"
+        and item["date"] >= start_date
+        and item["date"] <= end_date
+    ]
 
 
 class AppleUpdates(object):
@@ -86,20 +91,22 @@ class AppleUpdates(object):
     of those updates.
     """
 
-    SHUTDOWN_ACTIONS = ['RequireShutdown']
-    RESTART_ACTIONS = ['RequireRestart', 'RecommendRestart']
+    SHUTDOWN_ACTIONS = ["RequireShutdown"]
+    RESTART_ACTIONS = ["RequireRestart", "RecommendRestart"]
 
     def __init__(self):
-        self._managed_install_dir = prefs.pref('ManagedInstallDir')
+        self._managed_install_dir = prefs.pref("ManagedInstallDir")
         self.apple_updates_plist = os.path.join(
-            self._managed_install_dir, 'AppleUpdates.plist')
+            self._managed_install_dir, "AppleUpdates.plist"
+        )
 
         # fix things if somehow we died last time before resetting the
         # original CatalogURL
         os_version_tuple = osutils.getOsVersion(as_tuple=True)
         if os_version_tuple < (10, 10):
             display.display_warning(
-                'macOS versions below 10.10 are no longer supported')
+                "macOS versions below 10.10 are no longer supported"
+            )
         if os_version_tuple == (10, 10):
             su_prefs.reset_original_catalogurl()
 
@@ -112,7 +119,7 @@ class AppleUpdates(object):
         self.apple_updates = None
 
         # apple_update_metadata support
-        self.client_id = ''
+        self.client_id = ""
         self.force_catalog_refresh = False
 
     def restart_action_for_updates(self):
@@ -121,11 +128,11 @@ class AppleUpdates(object):
             apple_updates = FoundationPlist.readPlist(self.apple_updates_plist)
         except FoundationPlist.NSPropertyListSerializationException:
             return POSTACTION_RESTART
-        for item in apple_updates.get('AppleUpdates', []):
-            if item.get('RestartAction') in self.SHUTDOWN_ACTIONS:
+        for item in apple_updates.get("AppleUpdates", []):
+            if item.get("RestartAction") in self.SHUTDOWN_ACTIONS:
                 return POSTACTION_SHUTDOWN
-        for item in apple_updates.get('AppleUpdates', []):
-            if item.get('RestartAction') in self.RESTART_ACTIONS:
+        for item in apple_updates.get("AppleUpdates", []):
+            if item.get("RestartAction") in self.RESTART_ACTIONS:
                 return POSTACTION_RESTART
         # if we get this far, there must be no items that require restart
         return POSTACTION_NONE
@@ -148,7 +155,7 @@ class AppleUpdates(object):
         Returns:
           Boolean. True if successful, False otherwise.
         """
-        msg = 'Checking for available Apple Software Updates...'
+        msg = "Checking for available Apple Software Updates..."
         display.display_status_major(msg)
 
         os_version_tuple = osutils.getOsVersion(as_tuple=True)
@@ -159,19 +166,19 @@ class AppleUpdates(object):
 
         # before we call softwareupdate,
         # clear stored value for LastSessionSuccessful
-        su_prefs.set_pref('LastSessionSuccessful', None)
-        results = su_tool.run(
-            ['-d', '-a'], catalog_url=catalog_url, stop_allowed=True)
-        retcode = results.get('exit_code', 0)
+        su_prefs.set_pref("LastSessionSuccessful", None)
+        results = su_tool.run(["-d", "-a"], catalog_url=catalog_url, stop_allowed=True)
+        retcode = results.get("exit_code", 0)
         if retcode:  # there was an error
-            display.display_error('softwareupdate error: %s', retcode)
+            display.display_error("softwareupdate error: %s", retcode)
             return False
         # not sure all older macOS versions set LastSessionSuccessful, so
         # react only if it's explicitly set to False
-        last_session_successful = su_prefs.pref('LastSessionSuccessful')
+        last_session_successful = su_prefs.pref("LastSessionSuccessful")
         if last_session_successful is False:
             display.display_error(
-                'softwareupdate reported an unsuccessful download session.')
+                "softwareupdate reported an unsuccessful download session."
+            )
             return False
         return True
 
@@ -182,8 +189,9 @@ class AppleUpdates(object):
         os_version_tuple = osutils.getOsVersion(as_tuple=True)
         if os_version_tuple < (10, 10):
             display.display_warning(
-                'macOS versions below 10.10 are no longer supported')
-        recommended_updates = su_prefs.pref('RecommendedUpdates') or []
+                "macOS versions below 10.10 are no longer supported"
+            )
+        recommended_updates = su_prefs.pref("RecommendedUpdates") or []
         if os_version_tuple < (10, 11):
             # --no-scan flag is not supported; just return the
             # RecommendedUpdates without filtering. We never saw the issues
@@ -193,21 +201,22 @@ class AppleUpdates(object):
             # if the list is empty no need to run softwareupdate -l to filter
             # the list
             return []
-        su_results = su_tool.run(['-l', '--no-scan'])
+        su_results = su_tool.run(["-l", "--no-scan"])
         filtered_updates = []
         # add update to filtered_updates only if it is also listed
         # in `softwareupdate -l` output
-        for item in su_results.get('updates', []):
+        for item in su_results.get("updates", []):
             for update in recommended_updates:
-                if (item.get('identifier') == update.get('Identifier') and
-                        item.get('version') == update.get('Display Version')):
+                if item.get("identifier") == update.get("Identifier") and item.get(
+                    "version"
+                ) == update.get("Display Version"):
                     item.update(update)
                     filtered_updates.append(item)
-                elif item.get('Title'):
+                elif item.get("Title"):
                     # new-style info first seen in Catalina
-                    if (item.get('Title') == update.get('Display Name') and
-                            item.get('Version') == update.get('Display Version')
-                       ):
+                    if item.get("Title") == update.get("Display Name") and item.get(
+                        "Version"
+                    ) == update.get("Display Version"):
                         item.update(update)
                         filtered_updates.append(item)
         return filtered_updates
@@ -220,16 +229,21 @@ class AppleUpdates(object):
         """
         recommended_updates = self.get_filtered_recommendedupdates()
         try:
-            return [item['Product Key'] for item in recommended_updates
-                    if 'Product Key' in item]
+            return [
+                item["Product Key"]
+                for item in recommended_updates
+                if "Product Key" in item
+            ]
         except IndexError:
             # RecommendedUpdates is an empty list
             pass
         except (KeyError, AttributeError):
             # RecommendedUpdates is in an unexpected format
             display.display_debug1(
-                'com.apple.SoftwareUpdate RecommendedUpdates is in an '
-                'unexpected format: %s', recommended_updates)
+                "com.apple.SoftwareUpdate RecommendedUpdates is in an "
+                "unexpected format: %s",
+                recommended_updates,
+            )
         return []
 
     def installed_apple_pkgs_changed(self):
@@ -240,22 +254,25 @@ class AppleUpdates(object):
         Returns:
           Boolean. False if the checksums match, True if they differ."""
         # pylint: disable=no-self-use
-        cmd = ['/usr/sbin/pkgutil', '--regexp', '--pkg-info-plist',
-               r'com\.apple\.*']
-        proc = subprocess.Popen(cmd, shell=False,
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output = proc.communicate()[0] # don't decode because we need the bytes
+        cmd = ["/usr/sbin/pkgutil", "--regexp", "--pkg-info-plist", r"com\.apple\.*"]
+        proc = subprocess.Popen(
+            cmd,
+            shell=False,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        output = proc.communicate()[0]  # don't decode because we need the bytes
 
         current_apple_packages_checksum = hashlib.sha256(output).hexdigest()
-        old_apple_packages_checksum = prefs.pref(
-            'InstalledApplePackagesChecksum')
+        old_apple_packages_checksum = prefs.pref("InstalledApplePackagesChecksum")
 
         if current_apple_packages_checksum == old_apple_packages_checksum:
             return False
 
-        prefs.set_pref('InstalledApplePackagesChecksum',
-                       current_apple_packages_checksum)
+        prefs.set_pref(
+            "InstalledApplePackagesChecksum", current_apple_packages_checksum
+        )
         return True
 
     def _force_check_necessary(self, original_hash):
@@ -267,19 +284,19 @@ class AppleUpdates(object):
         Returns:
           Boolean. True if a force check is needed, False otherwise.
         """
-        new_hash = munkihash.getsha256hash(
-            self.applesync.apple_download_catalog_path)
+        new_hash = munkihash.getsha256hash(self.applesync.apple_download_catalog_path)
         if original_hash != new_hash:
-            munkilog.log('Apple update catalog has changed.')
+            munkilog.log("Apple update catalog has changed.")
             return True
 
         if self.installed_apple_pkgs_changed():
-            munkilog.log('Installed Apple packages have changed.')
+            munkilog.log("Installed Apple packages have changed.")
             return True
 
         if not self.available_updates_downloaded():
-            munkilog.log('Downloaded updates do not match our list of '
-                         'available updates.')
+            munkilog.log(
+                "Downloaded updates do not match our list of " "available updates."
+            )
             return True
 
         return False
@@ -295,30 +312,31 @@ class AppleUpdates(object):
             updates.
         """
         before_hash = munkihash.getsha256hash(
-            self.applesync.apple_download_catalog_path)
+            self.applesync.apple_download_catalog_path
+        )
 
-        msg = 'Checking Apple Software Update catalog...'
+        msg = "Checking Apple Software Update catalog..."
         display.display_status_major(msg)
         try:
             self.applesync.cache_apple_catalog()
         except sync.CatalogNotFoundError:
             return -1
         except (sync.ReplicationError, fetch.Error) as err:
-            display.display_warning(
-                'Could not download Apple SUS catalog:')
-            display.display_warning(u'\t%s', err)
+            display.display_warning("Could not download Apple SUS catalog:")
+            display.display_warning(u"\t%s", err)
             return -1
 
         if not force_check and not self._force_check_necessary(before_hash):
             display.display_info(
-                'Skipping Apple Software Update check '
-                'because sucatalog is unchanged, installed Apple packages are '
-                'unchanged and we recently did a full check.')
+                "Skipping Apple Software Update check "
+                "because sucatalog is unchanged, installed Apple packages are "
+                "unchanged and we recently did a full check."
+            )
             # return count of cached updates
             return len(self.software_update_info())
 
         if self.download_available_updates():  # Success; ready to install.
-            prefs.set_pref('LastAppleSoftwareUpdateCheck', NSDate.date())
+            prefs.set_pref("LastAppleSoftwareUpdateCheck", NSDate.date())
             product_ids = self.available_update_product_ids()
             if not product_ids:
                 # No updates found
@@ -327,34 +345,30 @@ class AppleUpdates(object):
             try:
                 self.applesync.cache_update_metadata(product_ids)
             except sync.ReplicationError as err:
-                display.display_warning(
-                    'Could not replicate software update metadata:')
-                display.display_warning(u'\t%s', err)
+                display.display_warning("Could not replicate software update metadata:")
+                display.display_warning(u"\t%s", err)
                 return -1
             return len(product_ids)
         else:
             # Download error, allow check again soon.
-            display.display_error(
-                'Could not download all available Apple updates.')
-            prefs.set_pref('LastAppleSoftwareUpdateCheck', None)
+            display.display_error("Could not download all available Apple updates.")
+            prefs.set_pref("LastAppleSoftwareUpdateCheck", None)
             return 0
 
     def update_downloaded(self, product_key):
         """Verifies that a given update appears to be downloaded.
         Returns a boolean."""
         # pylint: disable=no-self-use
-        product_dir = os.path.join('/Library/Updates', product_key)
+        product_dir = os.path.join("/Library/Updates", product_key)
         if not os.path.isdir(product_dir):
-            munkilog.log(
-                'Apple Update product directory %s is missing'
-                % product_key)
+            munkilog.log("Apple Update product directory %s is missing" % product_key)
             return False
         else:
-            pkgs = glob.glob(os.path.join(product_dir, '*.pkg'))
+            pkgs = glob.glob(os.path.join(product_dir, "*.pkg"))
             if not pkgs:
                 munkilog.log(
-                    'Apple Update product directory %s contains no pkgs'
-                    % product_key)
+                    "Apple Update product directory %s contains no pkgs" % product_key
+                )
                 return False
         return True
 
@@ -371,7 +385,7 @@ class AppleUpdates(object):
             return True
 
         for update in apple_updates:
-            if not self.update_downloaded(update.get('productKey')):
+            if not self.update_downloaded(update.get("productKey")):
                 return False
         return True
 
@@ -394,92 +408,83 @@ class AppleUpdates(object):
         recommended_updates = self.get_filtered_recommendedupdates()
         for item in recommended_updates:
             try:
-                updates_dict[item['Product Key']] = item
+                updates_dict[item["Product Key"]] = item
             except (TypeError, AttributeError, KeyError):
                 pass
             try:
-                update_display_names[item['Product Key']] = (
-                    item['Display Name'])
+                update_display_names[item["Product Key"]] = item["Display Name"]
             except (TypeError, AttributeError, KeyError):
                 pass
             try:
-                update_versions[item['Product Key']] = (
-                    item['Display Version'])
+                update_versions[item["Product Key"]] = item["Display Version"]
             except (TypeError, AttributeError, KeyError):
                 pass
         try:
-            product_keys = [item['Product Key']
-                            for item in recommended_updates]
+            product_keys = [item["Product Key"] for item in recommended_updates]
         except (TypeError, AttributeError, KeyError):
             pass
 
         for product_key in product_keys:
-            if updates_dict.get(product_key, {}).get('MobileSoftwareUpdate'):
+            if updates_dict.get(product_key, {}).get("MobileSoftwareUpdate"):
                 # New in Big Sur. These updates are not downloaded to
                 # /Library/Updates and we don't (yet) have access to any
                 # additional metadata
                 su_info = {}
-                su_info['productKey'] = product_key
-                su_info['name'] = updates_dict[
-                    product_key].get('Display Name', '')
-                su_info['apple_product_name'] = su_info['name']
-                su_info['display_name'] = su_info['name']
-                su_info['version_to_install'] = updates_dict[
-                    product_key].get('Display Version', '')
-                su_info['description'] = ''
+                su_info["productKey"] = product_key
+                su_info["name"] = updates_dict[product_key].get("Display Name", "")
+                su_info["apple_product_name"] = su_info["name"]
+                su_info["display_name"] = su_info["name"]
+                su_info["version_to_install"] = updates_dict[product_key].get(
+                    "Display Version", ""
+                )
+                su_info["description"] = ""
                 try:
-                    size = int(updates_dict[
-                        product_key].get('Size', '0K')[:-1])
-                    su_info['installer_item_size'] = size
-                    su_info['installed_size'] = size
+                    size = int(updates_dict[product_key].get("Size", "0K")[:-1])
+                    su_info["installer_item_size"] = size
+                    su_info["installed_size"] = size
                 except (ValueError, TypeError, IndexError):
-                    su_info['installed_size'] = 0
-                if updates_dict[product_key].get('Action') == 'restart':
-                    su_info['RestartAction'] = 'RequireRestart'
+                    su_info["installed_size"] = 0
+                if updates_dict[product_key].get("Action") == "restart":
+                    su_info["RestartAction"] = "RequireRestart"
                 apple_updates.append(su_info)
                 continue
             elif not self.update_downloaded(product_key):
                 display.display_warning(
-                    'Product %s does not appear to be downloaded',
-                    product_key)
+                    "Product %s does not appear to be downloaded", product_key
+                )
                 continue
-            localized_dist = self.applesync.distribution_for_product_key(
-                product_key)
+            localized_dist = self.applesync.distribution_for_product_key(product_key)
             if not localized_dist:
-                display.display_warning(
-                    'No dist file for product %s', product_key)
+                display.display_warning("No dist file for product %s", product_key)
                 continue
-            if (not recommended_updates and
-                    not localized_dist.endswith('English.dist')):
+            if not recommended_updates and not localized_dist.endswith("English.dist"):
                 # we need the English versions of some of the data
                 # see (https://groups.google.com/d/msg/munki-dev/
                 # _5HdMyy3kKU/YFxqslayDQAJ)
                 english_dist = self.applesync.distribution_for_product_key(
-                    product_key, 'English')
+                    product_key, "English"
+                )
                 if english_dist:
                     english_su_info = dist.parse_su_dist(english_dist)
             su_info = dist.parse_su_dist(localized_dist)
-            su_info['productKey'] = product_key
-            if su_info['name'] == '':
-                su_info['name'] = product_key
+            su_info["productKey"] = product_key
+            if su_info["name"] == "":
+                su_info["name"] = product_key
             if product_key in update_display_names:
-                su_info['apple_product_name'] = (
-                    update_display_names[product_key])
+                su_info["apple_product_name"] = update_display_names[product_key]
             elif english_su_info:
-                su_info['apple_product_name'] = (
-                    english_su_info['apple_product_name'])
+                su_info["apple_product_name"] = english_su_info["apple_product_name"]
             if product_key in update_versions:
-                su_info['version_to_install'] = update_versions[product_key]
+                su_info["version_to_install"] = update_versions[product_key]
             elif english_su_info:
-                su_info['version_to_install'] = (
-                    english_su_info['version_to_install'])
+                su_info["version_to_install"] = english_su_info["version_to_install"]
             apple_updates.append(su_info)
 
         return apple_updates
 
     def software_update_info(self):
         """Returns:
-          List of dictionaries describing available Apple updates.
+        List of dictionaries describing available Apple updates.
         """
         if self.apple_updates is None:
             self.apple_updates = self.get_apple_updates()
@@ -493,24 +498,28 @@ class AppleUpdates(object):
         """
         apple_updates = self.software_update_info()
         if apple_updates:
-            if not prefs.pref('AppleSoftwareUpdatesOnly'):
+            if not prefs.pref("AppleSoftwareUpdatesOnly"):
                 cataloglist = updatecheck.get_primary_manifest_catalogs(
-                    self.client_id, force_refresh=self.force_catalog_refresh)
+                    self.client_id, force_refresh=self.force_catalog_refresh
+                )
                 if cataloglist:
                     # Check for apple_update_metadata
-                    display.display_detail(
-                        '**Checking for Apple Update Metadata**')
+                    display.display_detail("**Checking for Apple Update Metadata**")
                     for item in apple_updates:
                         # Find matching metadata item
                         metadata_item = catalogs.get_item_detail(
-                            item['productKey'], cataloglist,
-                            vers='apple_update_metadata')
+                            item["productKey"],
+                            cataloglist,
+                            vers="apple_update_metadata",
+                        )
                         if metadata_item:
                             display.display_debug1(
-                                'Processing metadata for %s, %s...',
-                                item['productKey'], item['display_name'])
+                                "Processing metadata for %s, %s...",
+                                item["productKey"],
+                                item["display_name"],
+                            )
                             self.copy_update_metadata(item, metadata_item)
-            plist = {'AppleUpdates': apple_updates}
+            plist = {"AppleUpdates": apple_updates}
             FoundationPlist.writePlist(plist, self.apple_updates_plist)
             return len(apple_updates)
         else:
@@ -525,28 +534,30 @@ class AppleUpdates(object):
         try:
             pl_dict = FoundationPlist.readPlist(self.apple_updates_plist)
         except FoundationPlist.FoundationPlistException:
-            display.display_error(
-                'Error reading: %s', self.apple_updates_plist)
+            display.display_error("Error reading: %s", self.apple_updates_plist)
             return
-        apple_updates = pl_dict.get('AppleUpdates', [])
+        apple_updates = pl_dict.get("AppleUpdates", [])
         if not apple_updates:
-            display.display_info('No available Apple Software Updates.')
+            display.display_info("No available Apple Software Updates.")
             return
-        reports.report['AppleUpdates'] = apple_updates
+        reports.report["AppleUpdates"] = apple_updates
         display.display_info(
-            'The following Apple Software Updates are available to '
-            'install:')
+            "The following Apple Software Updates are available to " "install:"
+        )
         for item in apple_updates:
             display.display_info(
-                '    + %s-%s' % (
-                    item.get('display_name', item.get('name', '')),
-                    item.get('version_to_install', '')))
-            if item.get('RestartAction') in self.RESTART_ACTIONS:
-                display.display_info('       *Restart required')
-                reports.report['RestartRequired'] = True
-            elif item.get('RestartAction') == 'RequireLogout':
-                display.display_info('       *Logout required')
-                reports.report['LogoutRequired'] = True
+                "    + %s-%s"
+                % (
+                    item.get("display_name", item.get("name", "")),
+                    item.get("version_to_install", ""),
+                )
+            )
+            if item.get("RestartAction") in self.RESTART_ACTIONS:
+                display.display_info("       *Restart required")
+                reports.report["RestartRequired"] = True
+            elif item.get("RestartAction") == "RequireLogout":
+                display.display_info("       *Logout required")
+                reports.report["LogoutRequired"] = True
 
     def installable_updates(self):
         """Returns a list of installable Apple updates.
@@ -557,7 +568,7 @@ class AppleUpdates(object):
             # can't read it or it doesn't exist, therefore no installable
             # updates
             return []
-        apple_updates = pl_dict.get('AppleUpdates', [])
+        apple_updates = pl_dict.get("AppleUpdates", [])
         os_version_tuple = osutils.getOsVersion(as_tuple=True)
         if os_version_tuple >= (10, 14):
             # in Mojave and Catalina (and perhaps beyond), it's too risky to
@@ -565,8 +576,9 @@ class AppleUpdates(object):
             # not reliable at this any longer. So filter out updates that
             # require a restart
             filtered_apple_updates = [
-                item for item in apple_updates
-                if item.get('RestartAction', 'None') == 'None'
+                item
+                for item in apple_updates
+                if item.get("RestartAction", "None") == "None"
             ]
             return filtered_apple_updates
         return apple_updates
@@ -587,27 +599,29 @@ class AppleUpdates(object):
 
         installlist = self.software_update_info()
         remaining_apple_updates = []
-        installresults = {'installed': [], 'download': []}
-        su_options = ['-i']
+        installresults = {"installed": [], "download": []}
+        su_options = ["-i"]
 
         if only_unattended:
-            msg = 'Installing unattended Apple Software Updates...'
+            msg = "Installing unattended Apple Software Updates..."
             restart_action = POSTACTION_NONE
             unattended_install_product_ids = self.get_unattended_installs()
             # Filter installlist to only include items
             # which we're attempting to install
-            filtered_installlist = [item for item in installlist
-                                    if item.get('productKey') in
-                                    unattended_install_product_ids]
+            filtered_installlist = [
+                item
+                for item in installlist
+                if item.get("productKey") in unattended_install_product_ids
+            ]
             # record items we aren't planning to attempt to install
-            remaining_apple_updates = [item for item in installlist
-                                       if item not in filtered_installlist]
+            remaining_apple_updates = [
+                item for item in installlist if item not in filtered_installlist
+            ]
             # set the list of items to install to our newly-filted list
             installlist = filtered_installlist
 
         elif os_version_tuple >= (10, 14):
-            msg = ('Installing Apple Software Updates that do not require '
-                   'restart...')
+            msg = "Installing Apple Software Updates that do not require " "restart..."
             restart_action = POSTACTION_NONE
             # in Mojave and Catalina (and perhaps beyond), it's too risky to
             # install OS or Security updates because softwareupdate is just
@@ -616,22 +630,25 @@ class AppleUpdates(object):
             # tools. We can still install other updates that don't require a
             # restart (for now)
             filtered_installlist = [
-                item for item in installlist
-                if item.get('RestartAction', 'None') == 'None'
+                item
+                for item in installlist
+                if item.get("RestartAction", "None") == "None"
             ]
             # record items we aren't planning to attempt to install
-            remaining_apple_updates = [item for item in installlist
-                                       if item not in filtered_installlist]
+            remaining_apple_updates = [
+                item for item in installlist if item not in filtered_installlist
+            ]
             for item in remaining_apple_updates:
                 display.display_debug1(
                     "Skipping install of %s-%s because it requires a restart.",
-                    item['name'], item['version_to_install']
+                    item["name"],
+                    item["version_to_install"],
                 )
             # set the list of items to install to our newly-filtered list
             installlist = filtered_installlist
 
         else:
-            msg = 'Installing available Apple Software Updates...'
+            msg = "Installing available Apple Software Updates..."
             restart_action = self.restart_action_for_updates()
 
         if not installlist:
@@ -642,8 +659,7 @@ class AppleUpdates(object):
         # Add the current (possibly filtered) installlist items to the
         # softwareupdate install options
         for item in installlist:
-            su_options.append(
-                item['name'] + '-' + item['version_to_install'])
+            su_options.append(item["name"] + "-" + item["version_to_install"])
 
         # new in 10.11: '--no-scan' flag to tell softwareupdate to just install
         # and not rescan for available updates.
@@ -658,8 +674,9 @@ class AppleUpdates(object):
                 #  with updates cached "too long" in 10.12+)
                 munkilog.log(
                     "WARNING: Cannot reach Apple Software Update server while "
-                    "installing Apple updates")
-                su_options.append('--no-scan')
+                    "installing Apple updates"
+                )
+                su_options.append("--no-scan")
             # 10.11 seems not to like file:// URLs, and we don't really need
             # to switch to a local file URL anyway since we now have the
             # --no-scan option
@@ -668,83 +685,90 @@ class AppleUpdates(object):
             # use our local catalog
             if not os.path.exists(self.applesync.local_catalog_path):
                 display.display_error(
-                    'Missing local Software Update catalog at %s',
-                    self.applesync.local_catalog_path)
+                    "Missing local Software Update catalog at %s",
+                    self.applesync.local_catalog_path,
+                )
                 return False  # didn't do anything, so no restart needed
-            catalog_url = 'file://localhost' + quote(
-                self.applesync.local_catalog_path)
+            catalog_url = "file://localhost" + quote(self.applesync.local_catalog_path)
 
         su_start_date = NSDate.new()
         installresults = su_tool.run(su_options, catalog_url=catalog_url)
-        retcode = installresults.get('exit_code', 0)
+        retcode = installresults.get("exit_code", 0)
         self.shutdown_instead_of_restart = (
-            installresults.get('post_action') == POSTACTION_SHUTDOWN or
-            osutils.bridgeos_update_staged()
+            installresults.get("post_action") == POSTACTION_SHUTDOWN
+            or osutils.bridgeos_update_staged()
         )
         su_end_date = NSDate.new()
 
         # get the items that were just installed from InstallHistory.plist
         installed_items = softwareupdated_installhistory(
-            start_date=su_start_date, end_date=su_end_date)
-        display.display_debug2(
-            'InstallHistory.plist items:\n%s', installed_items)
-        if not 'InstallResults' in reports.report:
-            reports.report['InstallResults'] = []
+            start_date=su_start_date, end_date=su_end_date
+        )
+        display.display_debug2("InstallHistory.plist items:\n%s", installed_items)
+        if not "InstallResults" in reports.report:
+            reports.report["InstallResults"] = []
 
-        display.display_debug1(
-            'Raw Apple Update install results: %s', installresults)
+        display.display_debug1("Raw Apple Update install results: %s", installresults)
         for item in installlist:
             rep = {}
-            rep['name'] = item.get('apple_product_name')
-            rep['version'] = item.get('version_to_install', '')
-            rep['applesus'] = True
-            rep['time'] = su_end_date
-            rep['productKey'] = item.get('productKey', '')
-            message = 'Apple Software Update install of %s-%s: %s'
+            rep["name"] = item.get("apple_product_name")
+            rep["version"] = item.get("version_to_install", "")
+            rep["applesus"] = True
+            rep["time"] = su_end_date
+            rep["productKey"] = item.get("productKey", "")
+            message = "Apple Software Update install of %s-%s: %s"
             # first try to match against the items from InstallHistory.plist
             matched_installed_items = [
-                ih_item for ih_item in installed_items
-                if ih_item['displayName'] in [
-                    item.get('apple_product_name'), item.get('display_name')]
-                and ih_item['displayVersion'] == item.get('version_to_install')
+                ih_item
+                for ih_item in installed_items
+                if ih_item["displayName"]
+                in [item.get("apple_product_name"), item.get("display_name")]
+                and ih_item["displayVersion"] == item.get("version_to_install")
             ]
             if matched_installed_items:
-                display.display_debug2('Matched %s in InstallHistory.plist',
-                                       item.get('apple_product_name'))
-                rep['status'] = 0
-                rep['time'] = matched_installed_items[0]['date']
-                install_status = 'SUCCESSFUL'
-            elif rep['name'] in installresults['installed']:
-                rep['status'] = 0
-                install_status = 'SUCCESSFUL'
-            elif ('display_name' in item and
-                  item['display_name'] in installresults['installed']):
-                rep['status'] = 0
-                install_status = 'SUCCESSFUL'
-            elif rep['name'] in installresults['download']:
-                rep['status'] = -1
-                install_status = 'FAILED due to missing package.'
+                display.display_debug2(
+                    "Matched %s in InstallHistory.plist", item.get("apple_product_name")
+                )
+                rep["status"] = 0
+                rep["time"] = matched_installed_items[0]["date"]
+                install_status = "SUCCESSFUL"
+            elif rep["name"] in installresults["installed"]:
+                rep["status"] = 0
+                install_status = "SUCCESSFUL"
+            elif (
+                "display_name" in item
+                and item["display_name"] in installresults["installed"]
+            ):
+                rep["status"] = 0
+                install_status = "SUCCESSFUL"
+            elif rep["name"] in installresults["download"]:
+                rep["status"] = -1
+                install_status = "FAILED due to missing package."
                 display.display_warning(
-                    'Apple update %s, %s failed. A sub-package was missing '
-                    'on disk at time of install.'
-                    % (rep['name'], rep['productKey']))
+                    "Apple update %s, %s failed. A sub-package was missing "
+                    "on disk at time of install." % (rep["name"], rep["productKey"])
+                )
             else:
-                rep['status'] = -2
-                install_status = 'FAILED for unknown reason'
+                rep["status"] = -2
+                install_status = "FAILED for unknown reason"
                 display.display_warning(
-                    'Apple update %s, %s may have failed to install. No record '
-                    'of success or failure.', rep['name'], rep['productKey'])
-                if installresults['installed']:
+                    "Apple update %s, %s may have failed to install. No record "
+                    "of success or failure.",
+                    rep["name"],
+                    rep["productKey"],
+                )
+                if installresults["installed"]:
                     display.display_warning(
-                        'softwareupdate recorded these installations: %s',
-                        installresults['installed'])
+                        "softwareupdate recorded these installations: %s",
+                        installresults["installed"],
+                    )
 
-            reports.report['InstallResults'].append(rep)
-            log_msg = message % (rep['name'], rep['version'], install_status)
-            munkilog.log(log_msg, 'Install.log')
+            reports.report["InstallResults"].append(rep)
+            log_msg = message % (rep["name"], rep["version"], install_status)
+            munkilog.log(log_msg, "Install.log")
 
         if retcode:  # there was an error
-            display.display_error('softwareupdate error: %s' % retcode)
+            display.display_error("softwareupdate error: %s" % retcode)
 
         if not remaining_apple_updates:
             # clean up our now stale local cache
@@ -755,13 +779,13 @@ class AppleUpdates(object):
             # we installed some of the updates, but some are still uninstalled.
             # re-write the apple_update_info to match
             self.apple_updates = remaining_apple_updates
-            plist = {'AppleUpdates': remaining_apple_updates}
+            plist = {"AppleUpdates": remaining_apple_updates}
             FoundationPlist.writePlist(plist, self.apple_updates_plist)
 
         # Also clear our pref value for last check date. We may have
         # just installed an update which is a pre-req for some other update.
         # Let's check again soon.
-        prefs.set_pref('LastAppleSoftwareUpdateCheck', None)
+        prefs.set_pref("LastAppleSoftwareUpdateCheck", None)
 
         # show stop button again
         if display.munkistatusoutput:
@@ -769,8 +793,8 @@ class AppleUpdates(object):
 
         if self.shutdown_instead_of_restart:
             display.display_info(
-                'One or more Apple updates requires a shutdown instead of '
-                'restart.')
+                "One or more Apple updates requires a shutdown instead of " "restart."
+            )
             restart_action = POSTACTION_SHUTDOWN
 
         return restart_action
@@ -783,10 +807,9 @@ class AppleUpdates(object):
             plist = FoundationPlist.readPlist(self.apple_updates_plist)
         except FoundationPlist.FoundationPlistException:
             plist = {}
-        return len(plist.get('AppleUpdates', []))
+        return len(plist.get("AppleUpdates", []))
 
-    def software_updates_available(
-            self, force_check=False, suppress_check=False):
+    def software_updates_available(self, force_check=False, suppress_check=False):
         """Checks for available Apple Software Updates, trying not to hit the
         SUS more than needed.
 
@@ -810,27 +833,23 @@ class AppleUpdates(object):
             # Apple Software Update server too frequently
             now = NSDate.new()
             next_su_check = now
-            last_su_check_string = prefs.pref(
-                'LastAppleSoftwareUpdateCheck')
+            last_su_check_string = prefs.pref("LastAppleSoftwareUpdateCheck")
             if last_su_check_string:
                 try:
-                    last_su_check = NSDate.dateWithString_(
-                        last_su_check_string)
+                    last_su_check = NSDate.dateWithString_(last_su_check_string)
                     # dateWithString_ returns None if invalid date string.
                     if not last_su_check:
                         raise ValueError
                     interval = 24 * 60 * 60
                     # only force check every 24 hours.
-                    next_su_check = last_su_check.dateByAddingTimeInterval_(
-                        interval)
+                    next_su_check = last_su_check.dateByAddingTimeInterval_(interval)
                 except (ValueError, TypeError):
                     pass
             if now.timeIntervalSinceDate_(next_su_check) >= 0:
                 updatecount = self.check_for_software_updates(force_check=True)
             else:
                 updatecount = self.check_for_software_updates(force_check=False)
-        display.display_debug1(
-            'CheckForSoftwareUpdates result: %s' % updatecount)
+        display.display_debug1("CheckForSoftwareUpdates result: %s" % updatecount)
         if updatecount == -1:
             # some (transient?) communications error with the su server; return
             # cached AppleInfo
@@ -846,63 +865,77 @@ class AppleUpdates(object):
         to keys contained in 'metadata_to_copy'.
         """
         # pylint: disable=no-self-use
-        metadata_to_copy = ['blocking_applications',
-                            'description',
-                            'display_name',
-                            'unattended_install',
-                            'RestartAction']
+        metadata_to_copy = [
+            "blocking_applications",
+            "description",
+            "display_name",
+            "unattended_install",
+            "RestartAction",
+        ]
         # we support force_install_after_date only on macOS earlier than Mojave
         os_version_tuple = osutils.getOsVersion(as_tuple=True)
         if os_version_tuple < (10, 14):
-            metadata_to_copy.append('force_install_after_date')
+            metadata_to_copy.append("force_install_after_date")
 
         # Mapping of supported restart_actions to
         # equal or greater auxiliary actions
         restart_actions = {
-            'RequireShutdown': ['RequireShutdown'],
-            'RequireRestart': ['RequireRestart', 'RecommendRestart'],
-            'RecommendRestart': ['RequireRestart', 'RecommendRestart'],
-            'RequireLogout': ['RequireRestart', 'RecommendRestart',
-                              'RequireLogout'],
-            'None': ['RequireShutdown', 'RequireRestart', 'RecommendRestart',
-                     'RequireLogout', 'None']
+            "RequireShutdown": ["RequireShutdown"],
+            "RequireRestart": ["RequireRestart", "RecommendRestart"],
+            "RecommendRestart": ["RequireRestart", "RecommendRestart"],
+            "RequireLogout": ["RequireRestart", "RecommendRestart", "RequireLogout"],
+            "None": [
+                "RequireShutdown",
+                "RequireRestart",
+                "RecommendRestart",
+                "RequireLogout",
+                "None",
+            ],
         }
 
         for key in metadata:
             # Apply 'white-listed', non-empty metadata keys
             if key in metadata_to_copy and metadata[key]:
-                if key == 'RestartAction':
+                if key == "RestartAction":
                     # Ensure that a heavier weighted 'RestartAction' is not
                     # overridden by one supplied in metadata
-                    if metadata[key] not in restart_actions.get(
-                            item.get(key, 'None')):
+                    if metadata[key] not in restart_actions.get(item.get(key, "None")):
                         display.display_debug2(
-                            '\tSkipping metadata RestartAction\'%s\' '
-                            'for item %s (ProductKey %s), '
-                            'item\'s original \'%s\' is preferred.',
-                            metadata[key], item.get('name'),
-                            item.get('productKey'), item[key])
+                            "\tSkipping metadata RestartAction'%s' "
+                            "for item %s (ProductKey %s), "
+                            "item's original '%s' is preferred.",
+                            metadata[key],
+                            item.get("name"),
+                            item.get("productKey"),
+                            item[key],
+                        )
                         continue
-                elif key == 'unattended_install':
+                elif key == "unattended_install":
                     # Don't apply unattended_install if a RestartAction exists
                     # in either the original item or metadata
-                    if metadata.get('RestartAction', 'None') != 'None':
+                    if metadata.get("RestartAction", "None") != "None":
                         display.display_warning(
-                            '\tIgnoring unattended_install key for Apple '
-                            'update %s (ProductKey %s) '
-                            'because metadata RestartAction is %s.',
-                            item.get('name'), item.get('productKey'),
-                            metadata.get('RestartAction'))
+                            "\tIgnoring unattended_install key for Apple "
+                            "update %s (ProductKey %s) "
+                            "because metadata RestartAction is %s.",
+                            item.get("name"),
+                            item.get("productKey"),
+                            metadata.get("RestartAction"),
+                        )
                         continue
-                    if item.get('RestartAction', 'None') != 'None':
+                    if item.get("RestartAction", "None") != "None":
                         display.display_warning(
-                            '\tIgnoring unattended_install key for Apple '
-                            'update %s (ProductKey %s) '
-                            'because item RestartAction is %s.'
-                            % (item.get('name'), item.get('productKey'),
-                               item.get('RestartAction')))
+                            "\tIgnoring unattended_install key for Apple "
+                            "update %s (ProductKey %s) "
+                            "because item RestartAction is %s."
+                            % (
+                                item.get("name"),
+                                item.get("productKey"),
+                                item.get("RestartAction"),
+                            )
+                        )
                         continue
-                display.display_debug2('\tApplying %s...' % key)
+                display.display_debug2("\tApplying %s..." % key)
                 item[key] = metadata[key]
         return item
 
@@ -914,27 +947,28 @@ class AppleUpdates(object):
         try:
             pl_dict = FoundationPlist.readPlist(self.apple_updates_plist)
         except FoundationPlist.FoundationPlistException:
-            display.display_error(
-                'Error reading: %s', self.apple_updates_plist)
+            display.display_error("Error reading: %s", self.apple_updates_plist)
             return product_ids
-        apple_updates = pl_dict.get('AppleUpdates', [])
+        apple_updates = pl_dict.get("AppleUpdates", [])
         for item in apple_updates:
-            if (item.get('unattended_install') or
-                    (prefs.pref('UnattendedAppleUpdates') and
-                     item.get('RestartAction', 'None') == 'None')):
+            if item.get("unattended_install") or (
+                prefs.pref("UnattendedAppleUpdates")
+                and item.get("RestartAction", "None") == "None"
+            ):
                 if processes.blocking_applications_running(item):
                     display.display_detail(
-                        'Skipping unattended install of %s because '
-                        'blocking application(s) running.'
-                        % item['display_name'])
+                        "Skipping unattended install of %s because "
+                        "blocking application(s) running." % item["display_name"]
+                    )
                     continue
-                product_ids.append(item['productKey'])
+                product_ids.append(item["productKey"])
             else:
                 display.display_detail(
-                    'Skipping install of %s because it\'s not unattended.'
-                    % item['display_name'])
+                    "Skipping install of %s because it's not unattended."
+                    % item["display_name"]
+                )
         return product_ids
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

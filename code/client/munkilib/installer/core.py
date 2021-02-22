@@ -29,10 +29,13 @@ import subprocess
 # No name 'Foo' in module 'Bar' warnings. Disable them.
 # pylint: disable=E0611
 from Foundation import NSDate
+
 # pylint: enable=E0611
 
 from . import dmg
 from . import pkg
+from . import xip
+from . import zip
 from . import rmpkgs
 
 from .. import adobeutils
@@ -56,20 +59,20 @@ from ..updatecheck import manifestutils
 # initialize our report fields
 # we do this here because appleupdates.installAppleUpdates()
 # calls install_with_info()
-reports.report['InstallResults'] = []
-reports.report['RemovalResults'] = []
+reports.report["InstallResults"] = []
+reports.report["RemovalResults"] = []
 
 
 def remove_copied_items(itemlist):
-    '''Removes filesystem items based on info in itemlist.
-    These items were typically installed via DMG'''
+    """Removes filesystem items based on info in itemlist.
+    These items were typically installed via DMG"""
     retcode = 0
     if not itemlist:
         display.display_error("Nothing to remove!")
         return -1
 
     for item in itemlist:
-        if 'destination_item' in item:
+        if "destination_item" in item:
             itemname = item.get("destination_item")
         else:
             itemname = item.get("source_item")
@@ -84,11 +87,10 @@ def remove_copied_items(itemlist):
             break
         path_to_remove = os.path.join(destpath, os.path.basename(itemname))
         if os.path.exists(path_to_remove):
-            display.display_status_minor('Removing %s' % path_to_remove)
-            retcode = subprocess.call(['/bin/rm', '-rf', path_to_remove])
+            display.display_status_minor("Removing %s" % path_to_remove)
+            retcode = subprocess.call(["/bin/rm", "-rf", path_to_remove])
             if retcode:
-                display.display_error(
-                    'Removal error for %s', path_to_remove)
+                display.display_error("Removal error for %s", path_to_remove)
                 break
         else:
             # path_to_remove doesn't exist
@@ -99,8 +101,8 @@ def remove_copied_items(itemlist):
 
 
 def item_prereqs_in_skipped_items(item, skipped_items):
-    '''Looks for item prerequisites (requires and update_for) in the list
-    of skipped items. Returns a list of matches.'''
+    """Looks for item prerequisites (requires and update_for) in the list
+    of skipped items. Returns a list of matches."""
 
     # shortcut -- if we have no skipped items, just return an empty list
     # also reduces log noise in the common case
@@ -108,37 +110,39 @@ def item_prereqs_in_skipped_items(item, skipped_items):
         return []
 
     display.display_debug1(
-        'Checking for skipped prerequisites for %s-%s'
-        % (item['name'], item.get('version_to_install')))
+        "Checking for skipped prerequisites for %s-%s"
+        % (item["name"], item.get("version_to_install"))
+    )
 
     # get list of prerequisites for this item
-    prerequisites = item.get('requires', [])
-    prerequisites.extend(item.get('update_for', []))
+    prerequisites = item.get("requires", [])
+    prerequisites.extend(item.get("update_for", []))
     if not prerequisites:
         display.display_debug1(
-            '%s-%s has no prerequisites.'
-            % (item['name'], item.get('version_to_install')))
+            "%s-%s has no prerequisites."
+            % (item["name"], item.get("version_to_install"))
+        )
         return []
-    display.display_debug1('Prerequisites: %s' % ", ".join(prerequisites))
+    display.display_debug1("Prerequisites: %s" % ", ".join(prerequisites))
 
     # build a dictionary of names and versions of skipped items
     skipped_item_dict = {}
     for skipped_item in skipped_items:
-        if skipped_item['name'] not in skipped_item_dict:
-            skipped_item_dict[skipped_item['name']] = []
+        if skipped_item["name"] not in skipped_item_dict:
+            skipped_item_dict[skipped_item["name"]] = []
         normalized_version = pkgutils.trim_version_string(
-            skipped_item.get('version_to_install', '0.0'))
+            skipped_item.get("version_to_install", "0.0")
+        )
         display.display_debug1(
-            'Adding skipped item: %s-%s',
-            skipped_item['name'], normalized_version)
-        skipped_item_dict[skipped_item['name']].append(normalized_version)
+            "Adding skipped item: %s-%s", skipped_item["name"], normalized_version
+        )
+        skipped_item_dict[skipped_item["name"]].append(normalized_version)
 
     # now check prereqs against the skipped items
     matched_prereqs = []
     for prereq in prerequisites:
         (name, version) = catalogs.split_name_and_version(prereq)
-        display.display_debug1(
-            'Comparing %s-%s against skipped items', name, version)
+        display.display_debug1("Comparing %s-%s against skipped items", name, version)
         if name in skipped_item_dict:
             if version:
                 version = pkgutils.trim_version_string(version)
@@ -150,40 +154,42 @@ def item_prereqs_in_skipped_items(item, skipped_items):
 
 
 def requires_restart(item):
-    '''Returns boolean to indicate if the item needs a restart'''
-    return (item.get("RestartAction") == "RequireRestart" or
-            item.get("RestartAction") == "RecommendRestart")
+    """Returns boolean to indicate if the item needs a restart"""
+    return (
+        item.get("RestartAction") == "RequireRestart"
+        or item.get("RestartAction") == "RecommendRestart"
+    )
 
 
 def handle_apple_package_install(item, itempath):
-    '''Process an Apple package for install. Returns retcode, needs_restart'''
+    """Process an Apple package for install. Returns retcode, needs_restart"""
     needs_restart = False
     suppress_bundle_relocation = item.get("suppress_bundle_relocation", False)
-    display.display_debug1(
-        "suppress_bundle_relocation: %s", suppress_bundle_relocation)
+    display.display_debug1("suppress_bundle_relocation: %s", suppress_bundle_relocation)
     if pkgutils.hasValidDiskImageExt(itempath):
-        display.display_status_minor(
-            "Mounting disk image %s" % item["installer_item"])
+        display.display_status_minor("Mounting disk image %s" % item["installer_item"])
         mount_with_shadow = suppress_bundle_relocation
         # we need to mount the diskimage as read/write to be able to
         # modify the package to suppress bundle relocation
         mountpoints = dmgutils.mountdmg(
-            itempath, use_shadow=mount_with_shadow, skip_verification=True)
+            itempath, use_shadow=mount_with_shadow, skip_verification=True
+        )
         if mountpoints == []:
             display.display_error(
-                "No filesystems mounted from %s", item["installer_item"])
+                "No filesystems mounted from %s", item["installer_item"]
+            )
             return (-99, False)
         if processes.stop_requested():
             dmgutils.unmountdmg(mountpoints[0])
             return (-99, False)
 
-        retcode = -99 # in case we find nothing to install
+        retcode = -99  # in case we find nothing to install
         needtorestart = False
-        if pkgutils.hasValidInstallerItemExt(item.get('package_path', '')):
+        if pkgutils.hasValidInstallerItemExt(item.get("package_path", "")):
             # admin has specified the relative path of the pkg on the DMG
             # this is useful if there is more than one pkg on the DMG,
             # or the actual pkg is not at the root of the DMG
-            fullpkgpath = os.path.join(mountpoints[0], item['package_path'])
+            fullpkgpath = os.path.join(mountpoints[0], item["package_path"])
             if os.path.exists(fullpkgpath):
                 (retcode, needtorestart) = pkg.install(fullpkgpath, item)
         else:
@@ -196,17 +202,17 @@ def handle_apple_package_install(item, itempath):
     elif pkgutils.hasValidPackageExt(itempath):
         (retcode, needtorestart) = pkg.install(itempath, item)
         needs_restart = needtorestart or requires_restart(item)
+    elif False:
+        pass  # temp
     else:
         # we didn't find anything we know how to install
-        munkilog.log(
-            "Found nothing we know how to install in %s" % itempath)
+        munkilog.log("Found nothing we know how to install in %s" % itempath)
         retcode = -99
 
     return (retcode, needs_restart)
 
 
-def install_with_info(
-        dirpath, installlist, only_unattended=False, applesus=False):
+def install_with_info(dirpath, installlist, only_unattended=False, applesus=False):
     """
     Uses the installlist to install items in the
     correct order.
@@ -219,24 +225,26 @@ def install_with_info(
         utc_now = datetime.datetime.utcnow()
         itemindex = itemindex + 1
 
-        if item.get('installer_type') == 'startosinstall':
+        if item.get("installer_type") == "startosinstall":
             skipped_installs.append(item)
             display.display_debug1(
-                'Skipping install of %s because it\'s a startosinstall item. '
-                'Will install later.' % item['name'])
+                "Skipping install of %s because it's a startosinstall item. "
+                "Will install later." % item["name"]
+            )
             continue
         if only_unattended:
-            if not item.get('unattended_install'):
+            if not item.get("unattended_install"):
                 skipped_installs.append(item)
                 display.display_detail(
-                    'Skipping install of %s because it\'s not unattended.'
-                    % item['name'])
+                    "Skipping install of %s because it's not unattended." % item["name"]
+                )
                 continue
             elif processes.blocking_applications_running(item):
                 skipped_installs.append(item)
                 display.display_detail(
-                    'Skipping unattended install of %s because blocking '
-                    'application(s) running.' % item['name'])
+                    "Skipping unattended install of %s because blocking "
+                    "application(s) running." % item["name"]
+                )
                 continue
 
         skipped_prereqs = item_prereqs_in_skipped_items(item, skipped_installs)
@@ -245,29 +253,34 @@ def install_with_info(
             # need to skip this item too
             skipped_installs.append(item)
             if only_unattended:
-                format_str = ('Skipping unattended install of %s because these '
-                              'prerequisites were skipped: %s')
+                format_str = (
+                    "Skipping unattended install of %s because these "
+                    "prerequisites were skipped: %s"
+                )
             else:
-                format_str = ('Skipping install of %s because these '
-                              'prerequisites were not installed: %s')
+                format_str = (
+                    "Skipping install of %s because these "
+                    "prerequisites were not installed: %s"
+                )
             display.display_detail(
-                format_str % (item['name'], ", ".join(skipped_prereqs)))
+                format_str % (item["name"], ", ".join(skipped_prereqs))
+            )
             continue
 
         if processes.stop_requested():
             return restartflag, skipped_installs
 
-        display_name = item.get('display_name') or item.get('name')
-        version_to_install = item.get('version_to_install', '')
+        display_name = item.get("display_name") or item.get("name")
+        version_to_install = item.get("version_to_install", "")
         display.display_status_major(
-            "Installing %s (%s of %s)"
-            % (display_name, itemindex, len(installlist)))
+            "Installing %s (%s of %s)" % (display_name, itemindex, len(installlist))
+        )
 
         retcode = 0
-        if 'preinstall_script' in item:
-            retcode = scriptutils.run_embedded_script('preinstall_script', item)
+        if "preinstall_script" in item:
+            retcode = scriptutils.run_embedded_script("preinstall_script", item)
 
-        if retcode == 0 and 'installer_item' in item:
+        if retcode == 0 and "installer_item" in item:
             installer_type = item.get("installer_type", "")
 
             itempath = os.path.join(dirpath, item["installer_item"])
@@ -275,7 +288,8 @@ def install_with_info(
                 # can't install, so we should stop. Since later items might
                 # depend on this one, we shouldn't continue
                 display.display_error(
-                    "Installer item %s was not found.", item["installer_item"])
+                    "Installer item %s was not found.", item["installer_item"]
+                )
                 return restartflag, skipped_installs
             # Adobe installs
             if installer_type.startswith("Adobe"):
@@ -288,19 +302,20 @@ def install_with_info(
                     retcode = 0
             # copy_from_dmg install
             elif installer_type == "copy_from_dmg":
-                retcode = dmg.copy_from_dmg(itempath, item.get('items_to_copy'))
+                retcode = dmg.copy_from_dmg(itempath, item.get("items_to_copy"))
                 if retcode == 0 and requires_restart(item):
                     restartflag = True
             # appdmg install (deprecated)
             elif installer_type == "appdmg":
                 display.display_warning(
-                    "install_type 'appdmg' is deprecated. Use 'copy_from_dmg'.")
+                    "install_type 'appdmg' is deprecated. Use 'copy_from_dmg'."
+                )
                 retcode = dmg.copy_app_from_dmg(itempath)
             # configuration profile install
-            elif installer_type == 'profile':
+            elif installer_type == "profile":
                 # profiles.install_profile returns True/False
                 retcode = 0
-                identifier = item.get('PayloadIdentifier')
+                identifier = item.get("PayloadIdentifier")
                 if not profiles.install_profile(itempath, identifier):
                     retcode = -1
                 if retcode == 0 and requires_restart(item):
@@ -312,13 +327,13 @@ def install_with_info(
             elif installer_type != "":
                 # we've encountered an installer type
                 # we don't know how to handle
-                display.display_error(
-                    "Unsupported install type: %s" % installer_type)
+                display.display_error("Unsupported install type: %s" % installer_type)
                 retcode = -99
             # better be Apple installer package
             else:
                 (retcode, need_to_restart) = handle_apple_package_install(
-                    item, itempath)
+                    item, itempath
+                )
                 if need_to_restart:
                     restartflag = True
 
@@ -326,30 +341,29 @@ def install_with_info(
                 return restartflag, skipped_installs
 
         # install succeeded. Do we have a postinstall_script?
-        if retcode == 0 and 'postinstall_script' in item:
+        if retcode == 0 and "postinstall_script" in item:
             # only run embedded postinstall script if the install did not
             # return a failure code
-            retcode = scriptutils.run_embedded_script(
-                'postinstall_script', item)
+            retcode = scriptutils.run_embedded_script("postinstall_script", item)
             if retcode:
                 # we won't consider postinstall script failures as fatal
                 # since the item has been installed via package/disk image
                 # but admin should be notified
                 display.display_warning(
-                    'Postinstall script for %s returned %s'
-                    % (item['name'], retcode))
+                    "Postinstall script for %s returned %s" % (item["name"], retcode)
+                )
                 # reset retcode to 0 so we will mark this install
                 # as successful
                 retcode = 0
 
         # if install was successful and this is a SelfService OnDemand install
         # remove the item from the SelfServeManifest's managed_installs
-        if retcode == 0 and item.get('OnDemand'):
-            manifestutils.remove_from_selfserve_installs(item['name'])
+        if retcode == 0 and item.get("OnDemand"):
+            manifestutils.remove_from_selfserve_installs(item["name"])
 
         # record install success/failure
-        if not 'InstallResults' in reports.report:
-            reports.report['InstallResults'] = []
+        if not "InstallResults" in reports.report:
+            reports.report["InstallResults"] = []
 
         if applesus:
             message = "Apple SUS install of %s-%s: %s"
@@ -373,19 +387,19 @@ def install_with_info(
         utc_now_complete = datetime.datetime.utcnow()
         duration_seconds = (utc_now_complete - utc_now).seconds
 
-        download_speed = item.get('download_kbytes_per_sec', 0)
+        download_speed = item.get("download_kbytes_per_sec", 0)
         install_result = {
-            'display_name': display_name,
-            'name': item['name'],
-            'version': version_to_install,
-            'applesus': applesus,
-            'status': retcode,
-            'time': NSDate.new(),
-            'duration_seconds': duration_seconds,
-            'download_kbytes_per_sec': download_speed,
-            'unattended': only_unattended,
+            "display_name": display_name,
+            "name": item["name"],
+            "version": version_to_install,
+            "applesus": applesus,
+            "status": retcode,
+            "time": NSDate.new(),
+            "duration_seconds": duration_seconds,
+            "download_kbytes_per_sec": download_speed,
+            "unattended": only_unattended,
         }
-        reports.report['InstallResults'].append(install_result)
+        reports.report["InstallResults"].append(install_result)
 
         # check to see if this installer item is needed by any additional
         # items in installinfo
@@ -393,7 +407,7 @@ def install_with_info(
         # with choicesXML files applied to a metapackage or
         # multiple packages being installed from a single DMG
         stillneeded = False
-        current_installer_item = item['installer_item']
+        current_installer_item = item["installer_item"]
         # are we at the end of the installlist?
         # (we already incremented itemindex for display
         # so with zero-based arrays itemindex now points to the item
@@ -401,21 +415,19 @@ def install_with_info(
         if itemindex < len(installlist):
             # nope, let's check the remaining items
             for lateritem in installlist[itemindex:]:
-                if (lateritem.get('installer_item') ==
-                        current_installer_item):
+                if lateritem.get("installer_item") == current_installer_item:
                     stillneeded = True
                     break
 
         # check to see if the item is both precache and OnDemand
-        if not stillneeded and item.get('precache') and item.get('OnDemand'):
+        if not stillneeded and item.get("precache") and item.get("OnDemand"):
             stillneeded = True
             break
 
         # need to check skipped_installs as well
         if not stillneeded:
             for skipped_item in skipped_installs:
-                if (skipped_item.get('installer_item') ==
-                        current_installer_item):
+                if skipped_item.get("installer_item") == current_installer_item:
                     stillneeded = True
                     break
 
@@ -440,189 +452,197 @@ def install_with_info(
 
 
 def skipped_items_that_require_this(item, skipped_items):
-    '''Looks for items in the skipped_items that require or are update_for
-    the current item. Returns a list of matches.'''
+    """Looks for items in the skipped_items that require or are update_for
+    the current item. Returns a list of matches."""
 
     # shortcut -- if we have no skipped items, just return an empty list
     # also reduces log noise in the common case
     if not skipped_items:
         return []
 
-    display.display_debug1(
-        'Checking for skipped items that require %s' % item['name'])
+    display.display_debug1("Checking for skipped items that require %s" % item["name"])
 
     matched_skipped_items = []
     for skipped_item in skipped_items:
         # get list of prerequisites for this skipped_item
-        prerequisites = skipped_item.get('requires', [])
-        prerequisites.extend(skipped_item.get('update_for', []))
+        prerequisites = skipped_item.get("requires", [])
+        prerequisites.extend(skipped_item.get("update_for", []))
         display.display_debug1(
-            '%s has these prerequisites: %s'
-            % (skipped_item['name'], ', '.join(prerequisites)))
+            "%s has these prerequisites: %s"
+            % (skipped_item["name"], ", ".join(prerequisites))
+        )
         for prereq in prerequisites:
-            (prereq_name, dummy_version) = catalogs.split_name_and_version(
-                prereq)
-            if prereq_name == item['name']:
-                matched_skipped_items.append(skipped_item['name'])
+            (prereq_name, dummy_version) = catalogs.split_name_and_version(prereq)
+            if prereq_name == item["name"]:
+                matched_skipped_items.append(skipped_item["name"])
     return matched_skipped_items
 
 
 def process_removals(removallist, only_unattended=False):
-    '''processes removals from the removal list'''
+    """processes removals from the removal list"""
     restart_flag = False
     index = 0
     skipped_removals = []
     for item in removallist:
         if only_unattended:
-            if not item.get('unattended_uninstall'):
+            if not item.get("unattended_uninstall"):
                 skipped_removals.append(item)
                 display.display_detail(
-                    ('Skipping removal of %s because it\'s not unattended.'
-                     % item['name']))
+                    (
+                        "Skipping removal of %s because it's not unattended."
+                        % item["name"]
+                    )
+                )
                 continue
             elif processes.blocking_applications_running(item):
                 skipped_removals.append(item)
                 display.display_detail(
-                    'Skipping unattended removal of %s because '
-                    'blocking application(s) running.' % item['name'])
+                    "Skipping unattended removal of %s because "
+                    "blocking application(s) running." % item["name"]
+                )
                 continue
 
         dependent_skipped_items = skipped_items_that_require_this(
-            item, skipped_removals)
+            item, skipped_removals
+        )
         if dependent_skipped_items:
             # need to skip this too
             skipped_removals.append(item)
             display.display_detail(
-                'Skipping removal of %s because these '
-                'skipped items required it: %s'
-                % (item['name'], ", ".join(dependent_skipped_items)))
+                "Skipping removal of %s because these "
+                "skipped items required it: %s"
+                % (item["name"], ", ".join(dependent_skipped_items))
+            )
             continue
 
         if processes.stop_requested():
             return restart_flag, skipped_removals
-        if not item.get('installed'):
+        if not item.get("installed"):
             # not installed, so skip it (this shouldn't happen...)
             continue
 
         index += 1
-        display_name = item.get('display_name') or item.get('name')
+        display_name = item.get("display_name") or item.get("name")
         display.display_status_major(
-            "Removing %s (%s of %s)...", display_name, index, len(removallist))
+            "Removing %s (%s of %s)...", display_name, index, len(removallist)
+        )
 
         retcode = 0
         # run preuninstall_script if it exists
-        if 'preuninstall_script' in item:
-            retcode = scriptutils.run_embedded_script(
-                'preuninstall_script', item)
+        if "preuninstall_script" in item:
+            retcode = scriptutils.run_embedded_script("preuninstall_script", item)
 
-        if retcode == 0 and 'uninstall_method' in item:
-            uninstallmethod = item['uninstall_method']
+        if retcode == 0 and "uninstall_method" in item:
+            uninstallmethod = item["uninstall_method"]
             if uninstallmethod == "removepackages":
-                if 'packages' in item:
+                if "packages" in item:
                     restart_flag = requires_restart(item)
-                    retcode = rmpkgs.removepackages(item['packages'],
-                                                    forcedeletebundles=True)
+                    retcode = rmpkgs.removepackages(
+                        item["packages"], forcedeletebundles=True
+                    )
                     if retcode:
                         if retcode == -128:
-                            message = (
-                                "Uninstall of %s was cancelled." % display_name)
+                            message = "Uninstall of %s was cancelled." % display_name
                         else:
                             message = "Uninstall of %s failed." % display_name
                         display.display_error(message)
                     else:
-                        munkilog.log(
-                            "Uninstall of %s was successful." % display_name)
+                        munkilog.log("Uninstall of %s was successful." % display_name)
 
             elif uninstallmethod.startswith("Adobe"):
                 retcode = adobeutils.do_adobe_removal(item)
 
             elif uninstallmethod == "remove_copied_items":
-                retcode = remove_copied_items(item.get('items_to_remove'))
+                retcode = remove_copied_items(item.get("items_to_remove"))
 
             elif uninstallmethod == "remove_app":
                 # deprecated with appdmg!
-                remove_app_info = item.get('remove_app_info', None)
+                remove_app_info = item.get("remove_app_info", None)
                 if remove_app_info:
-                    path_to_remove = remove_app_info['path']
-                    display.display_status_minor(
-                        'Removing %s' % path_to_remove)
-                    retcode = subprocess.call(
-                        ["/bin/rm", "-rf", path_to_remove])
+                    path_to_remove = remove_app_info["path"]
+                    display.display_status_minor("Removing %s" % path_to_remove)
+                    retcode = subprocess.call(["/bin/rm", "-rf", path_to_remove])
                     if retcode:
-                        display.display_error(
-                            "Removal error for %s", path_to_remove)
+                        display.display_error("Removal error for %s", path_to_remove)
                 else:
                     display.display_error(
-                        "Application removal info missing from %s",
-                        display_name)
+                        "Application removal info missing from %s", display_name
+                    )
 
-            elif uninstallmethod == 'remove_profile':
-                identifier = item.get('PayloadIdentifier')
+            elif uninstallmethod == "remove_profile":
+                identifier = item.get("PayloadIdentifier")
                 if identifier:
                     retcode = 0
                     if not profiles.remove_profile(identifier):
                         retcode = -1
                         display.display_error(
-                            "Profile removal error for %s", identifier)
+                            "Profile removal error for %s", identifier
+                        )
                 else:
                     display.display_error(
-                        "Profile removal info missing from %s", display_name)
+                        "Profile removal info missing from %s", display_name
+                    )
 
-            elif uninstallmethod == 'uninstall_script':
-                retcode = scriptutils.run_embedded_script(
-                    'uninstall_script', item)
+            elif uninstallmethod == "uninstall_script":
+                retcode = scriptutils.run_embedded_script("uninstall_script", item)
                 if retcode == 0 and requires_restart(item):
                     restart_flag = True
 
-            elif (os.path.exists(uninstallmethod) and
-                  os.access(uninstallmethod, os.X_OK)):
+            elif os.path.exists(uninstallmethod) and os.access(
+                uninstallmethod, os.X_OK
+            ):
                 # it's a script or program to uninstall
                 retcode = scriptutils.run_script(
-                    display_name, uninstallmethod, 'uninstall script')
+                    display_name, uninstallmethod, "uninstall script"
+                )
                 if retcode == 0 and requires_restart(item):
                     restart_flag = True
 
             else:
-                munkilog.log("Uninstall of %s failed because there was no "
-                             "valid uninstall method." % display_name)
+                munkilog.log(
+                    "Uninstall of %s failed because there was no "
+                    "valid uninstall method." % display_name
+                )
                 retcode = -99
 
-            if retcode == 0 and item.get('postuninstall_script'):
-                retcode = scriptutils.run_embedded_script(
-                    'postuninstall_script', item)
+            if retcode == 0 and item.get("postuninstall_script"):
+                retcode = scriptutils.run_embedded_script("postuninstall_script", item)
                 if retcode:
                     # we won't consider postuninstall script failures as fatal
                     # since the item has been uninstalled
                     # but admin should be notified
                     display.display_warning(
-                        'Postuninstall script for %s returned %s'
-                        % (item['name'], retcode))
+                        "Postuninstall script for %s returned %s"
+                        % (item["name"], retcode)
+                    )
                     # reset retcode to 0 so we will mark this uninstall
                     # as successful
                     retcode = 0
 
         # record removal success/failure
-        if not 'RemovalResults' in reports.report:
-            reports.report['RemovalResults'] = []
+        if not "RemovalResults" in reports.report:
+            reports.report["RemovalResults"] = []
         if retcode == 0:
             success_msg = "Removal of %s: SUCCESSFUL" % display_name
             munkilog.log(success_msg, "Install.log")
-            manifestutils.remove_from_selfserve_uninstalls(item['name'])
+            manifestutils.remove_from_selfserve_uninstalls(item["name"])
         else:
-            failure_msg = "Removal of %s: " % display_name + \
-                          " FAILED with return code: %s" % retcode
+            failure_msg = (
+                "Removal of %s: " % display_name
+                + " FAILED with return code: %s" % retcode
+            )
             munkilog.log(failure_msg, "Install.log")
             # append failed removal to skipped_removals so dependencies
             # aren't removed yet.
             skipped_removals.append(item)
         removal_result = {
-            'display_name': display_name,
-            'name': item['name'],
-            'status': retcode,
-            'time': NSDate.new(),
-            'unattended': only_unattended,
+            "display_name": display_name,
+            "name": item["name"],
+            "status": retcode,
+            "time": NSDate.new(),
+            "unattended": only_unattended,
         }
-        reports.report['RemovalResults'].append(removal_result)
+        reports.report["RemovalResults"].append(removal_result)
 
     return (restart_flag, skipped_removals)
 
@@ -640,8 +660,8 @@ def run(only_unattended=False):
     caffeinator = powermgr.Caffeinator()
     # pylint: enable=unused-variable
 
-    managedinstallbase = prefs.pref('ManagedInstallDir')
-    installdir = os.path.join(managedinstallbase, 'Cache')
+    managedinstallbase = prefs.pref("ManagedInstallDir")
+    installdir = os.path.join(managedinstallbase, "Cache")
 
     removals_need_restart = installs_need_restart = False
 
@@ -650,7 +670,7 @@ def run(only_unattended=False):
     else:
         munkilog.log("### Beginning managed installer session ###")
 
-    installinfopath = os.path.join(managedinstallbase, 'InstallInfo.plist')
+    installinfopath = os.path.join(managedinstallbase, "InstallInfo.plist")
     if os.path.exists(installinfopath):
         try:
             installinfo = FoundationPlist.readPlist(installinfopath)
@@ -658,91 +678,95 @@ def run(only_unattended=False):
             display.display_error("Invalid %s" % installinfopath)
             return -1
 
-        if prefs.pref('SuppressStopButtonOnInstall'):
+        if prefs.pref("SuppressStopButtonOnInstall"):
             munkistatus.hideStopButton()
 
         if "removals" in installinfo:
             # filter list to items that need to be removed
-            removallist = [item for item in installinfo['removals']
-                           if item.get('installed')]
-            reports.report['ItemsToRemove'] = removallist
+            removallist = [
+                item for item in installinfo["removals"] if item.get("installed")
+            ]
+            reports.report["ItemsToRemove"] = removallist
             if removallist:
                 if len(removallist) == 1:
                     munkistatus.message("Removing 1 item...")
                 else:
-                    munkistatus.message("Removing %i items..." %
-                                        len(removallist))
+                    munkistatus.message("Removing %i items..." % len(removallist))
                 munkistatus.detail("")
                 # set indeterminate progress bar
                 munkistatus.percent(-1)
                 munkilog.log("Processing removals")
-                (removals_need_restart,
-                 skipped_removals) = process_removals(
-                     removallist, only_unattended=only_unattended)
+                (removals_need_restart, skipped_removals) = process_removals(
+                    removallist, only_unattended=only_unattended
+                )
                 # if any removals were skipped, record them for later
-                installinfo['removals'] = skipped_removals
+                installinfo["removals"] = skipped_removals
 
         if "managed_installs" in installinfo:
             if not processes.stop_requested():
                 # filter list to items that need to be installed
-                installlist = [item for item in
-                               installinfo['managed_installs']
-                               if item.get('installed') is False]
-                reports.report['ItemsToInstall'] = installlist
+                installlist = [
+                    item
+                    for item in installinfo["managed_installs"]
+                    if item.get("installed") is False
+                ]
+                reports.report["ItemsToInstall"] = installlist
                 if installlist:
                     if len(installlist) == 1:
                         munkistatus.message("Installing 1 item...")
                     else:
-                        munkistatus.message(
-                            "Installing %i items..." % len(installlist))
+                        munkistatus.message("Installing %i items..." % len(installlist))
                     munkistatus.detail("")
                     # set indeterminate progress bar
                     munkistatus.percent(-1)
                     munkilog.log("Processing installs")
-                    (installs_need_restart, skipped_installs) = (
-                        install_with_info(installdir, installlist,
-                                          only_unattended=only_unattended))
+                    (installs_need_restart, skipped_installs) = install_with_info(
+                        installdir, installlist, only_unattended=only_unattended
+                    )
                     # if any installs were skipped record them for later
-                    installinfo['managed_installs'] = skipped_installs
+                    installinfo["managed_installs"] = skipped_installs
 
         # update optional_installs with new installation/removal status
-        for removal in reports.report.get('RemovalResults', []):
+        for removal in reports.report.get("RemovalResults", []):
             matching_optional_installs = [
-                item for item in installinfo.get('optional_installs', [])
-                if item['name'] == removal['name']]
+                item
+                for item in installinfo.get("optional_installs", [])
+                if item["name"] == removal["name"]
+            ]
             if len(matching_optional_installs) == 1:
-                if removal['status'] != 0:
-                    matching_optional_installs[0]['removal_error'] = True
-                    matching_optional_installs[0]['will_be_removed'] = False
+                if removal["status"] != 0:
+                    matching_optional_installs[0]["removal_error"] = True
+                    matching_optional_installs[0]["will_be_removed"] = False
                 else:
-                    matching_optional_installs[0]['installed'] = False
-                    matching_optional_installs[0]['will_be_removed'] = False
+                    matching_optional_installs[0]["installed"] = False
+                    matching_optional_installs[0]["will_be_removed"] = False
 
-        for install_item in reports.report.get('InstallResults', []):
+        for install_item in reports.report.get("InstallResults", []):
             matching_optional_installs = [
-                item for item in installinfo.get('optional_installs', [])
-                if item['name'] == install_item['name']
-                and item['version_to_install'] == install_item['version']]
+                item
+                for item in installinfo.get("optional_installs", [])
+                if item["name"] == install_item["name"]
+                and item["version_to_install"] == install_item["version"]
+            ]
             if len(matching_optional_installs) == 1:
-                if install_item['status'] != 0:
-                    matching_optional_installs[0]['install_error'] = True
-                    matching_optional_installs[0]['will_be_installed'] = False
-                elif matching_optional_installs[0].get('OnDemand'):
-                    matching_optional_installs[0]['installed'] = False
-                    matching_optional_installs[0]['needs_update'] = False
-                    matching_optional_installs[0]['will_be_installed'] = False
+                if install_item["status"] != 0:
+                    matching_optional_installs[0]["install_error"] = True
+                    matching_optional_installs[0]["will_be_installed"] = False
+                elif matching_optional_installs[0].get("OnDemand"):
+                    matching_optional_installs[0]["installed"] = False
+                    matching_optional_installs[0]["needs_update"] = False
+                    matching_optional_installs[0]["will_be_installed"] = False
                 else:
-                    matching_optional_installs[0]['installed'] = True
-                    matching_optional_installs[0]['needs_update'] = False
-                    matching_optional_installs[0]['will_be_installed'] = False
+                    matching_optional_installs[0]["installed"] = True
+                    matching_optional_installs[0]["needs_update"] = False
+                    matching_optional_installs[0]["will_be_installed"] = False
 
         # write updated installinfo back to disk to reflect current state
         try:
             FoundationPlist.writePlist(installinfo, installinfopath)
         except FoundationPlist.NSPropertyListWriteException:
             # not fatal
-            display.display_warning(
-                "Could not write to %s" % installinfopath)
+            display.display_warning("Could not write to %s" % installinfopath)
 
     else:
         if not only_unattended:  # no need to log that no unattended pkgs found.
@@ -759,5 +783,5 @@ def run(only_unattended=False):
     return constants.POSTACTION_NONE
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

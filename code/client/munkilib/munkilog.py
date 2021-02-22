@@ -33,14 +33,14 @@ from . import prefs
 
 
 def logging_level():
-    '''Returns the logging level, which might be defined badly by the admin'''
+    """Returns the logging level, which might be defined badly by the admin"""
     try:
-        return int(prefs.pref('LoggingLevel'))
+        return int(prefs.pref("LoggingLevel"))
     except TypeError:
         return 1
 
 
-def log(msg, logname=''):
+def log(msg, logname=""):
     """Generic logging function."""
     if len(msg) > 1000:
         # See http://bugs.python.org/issue11907 and RFC-3164
@@ -53,14 +53,14 @@ def log(msg, logname=''):
         logging.info(msg)  # noop unless configure_syslog() is called first.
 
     # date/time format string
-    formatstr = '%b %d %Y %H:%M:%S %z'
+    formatstr = "%b %d %Y %H:%M:%S %z"
     if not logname:
         # use our regular logfile
-        logpath = prefs.pref('LogFile')
+        logpath = prefs.pref("LogFile")
     else:
-        logpath = os.path.join(os.path.dirname(prefs.pref('LogFile')), logname)
+        logpath = os.path.join(os.path.dirname(prefs.pref("LogFile")), logname)
     try:
-        fileobj = codecs.open(logpath, mode='a', encoding='UTF-8')
+        fileobj = codecs.open(logpath, mode="a", encoding="UTF-8")
         try:
             fileobj.write("%s %s\n" % (time.strftime(formatstr), msg))
         except (OSError, IOError):
@@ -82,42 +82,42 @@ def configure_syslog():
     # then /var/run/syslog stops listening.  If we fail to catch this then
     # Munki completely errors.
     try:
-        syslog = logging.handlers.SysLogHandler('/var/run/syslog')
+        syslog = logging.handlers.SysLogHandler("/var/run/syslog")
     except BaseException:
-        log('LogToSyslog is enabled but socket connection failed.')
+        log("LogToSyslog is enabled but socket connection failed.")
         return
 
-    syslog.setFormatter(logging.Formatter('munki: %(message)s'))
+    syslog.setFormatter(logging.Formatter("munki: %(message)s"))
     syslog.setLevel(logging.INFO)
     logger.addHandler(syslog)
 
 
-def rotatelog(logname=''):
+def rotatelog(logname=""):
     """Rotate a log"""
     if not logname:
         # use our regular logfile
-        logpath = prefs.pref('LogFile')
+        logpath = prefs.pref("LogFile")
     else:
-        logpath = os.path.join(os.path.dirname(prefs.pref('LogFile')), logname)
+        logpath = os.path.join(os.path.dirname(prefs.pref("LogFile")), logname)
     if os.path.exists(logpath):
         for i in range(3, -1, -1):
             try:
-                os.unlink(logpath + '.' + str(i + 1))
+                os.unlink(logpath + "." + str(i + 1))
             except (OSError, IOError):
                 pass
             try:
-                os.rename(logpath + '.' + str(i), logpath + '.' + str(i + 1))
+                os.rename(logpath + "." + str(i), logpath + "." + str(i + 1))
             except (OSError, IOError):
                 pass
         try:
-            os.rename(logpath, logpath + '.0')
+            os.rename(logpath, logpath + ".0")
         except (OSError, IOError):
             pass
 
 
 def rotate_main_log():
     """Rotate our main log"""
-    main_log = prefs.pref('LogFile')
+    main_log = prefs.pref("LogFile")
     if os.path.exists(main_log):
         if os.path.getsize(main_log) > 1000000:
             rotatelog(main_log)
@@ -125,19 +125,17 @@ def rotate_main_log():
 
 def reset_warnings():
     """Rotate our warnings log."""
-    warningsfile = os.path.join(
-        os.path.dirname(prefs.pref('LogFile')), 'warnings.log')
+    warningsfile = os.path.join(os.path.dirname(prefs.pref("LogFile")), "warnings.log")
     if os.path.exists(warningsfile):
         rotatelog(warningsfile)
 
 
 def reset_errors():
     """Rotate our errors.log"""
-    errorsfile = os.path.join(
-        os.path.dirname(prefs.pref('LogFile')), 'errors.log')
+    errorsfile = os.path.join(os.path.dirname(prefs.pref("LogFile")), "errors.log")
     if os.path.exists(errorsfile):
         rotatelog(errorsfile)
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

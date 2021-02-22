@@ -33,9 +33,10 @@ from .. import prefs
 # Disable PyLint complaining about 'invalid' camelCase names
 # pylint: disable=C0103
 
+
 def getAppleUpdatesInstance():
     """Returns either an AppleUpdates instance, either cached or new."""
-    if not hasattr(getAppleUpdatesInstance, 'apple_updates_object'):
+    if not hasattr(getAppleUpdatesInstance, "apple_updates_object"):
         getAppleUpdatesInstance.apple_updates_object = au.AppleUpdates()
     return getAppleUpdatesInstance.apple_updates_object
 
@@ -48,30 +49,35 @@ def clearAppleUpdateInfo():
 def installAppleUpdates(only_unattended=False):
     """Method for drop-in appleupdates replacement; see primary method docs."""
     return getAppleUpdatesInstance().install_apple_updates(
-        only_unattended=only_unattended)
+        only_unattended=only_unattended
+    )
 
 
-def appleSoftwareUpdatesAvailable(forcecheck=False, suppresscheck=False,
-                                  client_id='', forcecatalogrefresh=False):
+def appleSoftwareUpdatesAvailable(
+    forcecheck=False, suppresscheck=False, client_id="", forcecatalogrefresh=False
+):
     """Method for drop-in appleupdates replacement; see primary method docs."""
     appleUpdatesObject = getAppleUpdatesInstance()
     os_version_tuple = osutils.getOsVersion(as_tuple=True)
-    munkisuscatalog = prefs.pref('SoftwareUpdateServerURL')
+    munkisuscatalog = prefs.pref("SoftwareUpdateServerURL")
     if os_version_tuple >= (10, 11):
         if munkisuscatalog:
             display.display_warning(
                 "Custom softwareupdate catalog %s in Munki's preferences will "
-                "be ignored." % munkisuscatalog)
+                "be ignored." % munkisuscatalog
+            )
     elif su_prefs.catalogurl_is_managed():
         display.display_warning(
             "Cannot efficiently manage Apple Software updates because "
             "softwareupdate's CatalogURL is managed via MCX or profiles. "
-            "You may see unexpected or undesirable results.")
+            "You may see unexpected or undesirable results."
+        )
     appleUpdatesObject.client_id = client_id
     appleUpdatesObject.force_catalog_refresh = forcecatalogrefresh
 
     return appleUpdatesObject.software_updates_available(
-        force_check=forcecheck, suppress_check=suppresscheck)
+        force_check=forcecheck, suppress_check=suppresscheck
+    )
 
 
 def installableUpdates():
@@ -85,5 +91,5 @@ def displayAppleUpdateInfo():
     getAppleUpdatesInstance().display_apple_update_info()
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

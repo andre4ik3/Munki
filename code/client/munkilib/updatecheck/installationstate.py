@@ -46,15 +46,16 @@ def installed_state(item_pl):
     """
     foundnewer = False
 
-    if item_pl.get('OnDemand'):
+    if item_pl.get("OnDemand"):
         # always install these items -- retcode 0 means install is needed
-        display.display_debug1('This is an OnDemand item. Must install.')
+        display.display_debug1("This is an OnDemand item. Must install.")
         return 0
 
-    if item_pl.get('installcheck_script'):
+    if item_pl.get("installcheck_script"):
         retcode = scriptutils.run_embedded_script(
-            'installcheck_script', item_pl, suppress_error=True)
-        display.display_debug1('installcheck_script returned %s', retcode)
+            "installcheck_script", item_pl, suppress_error=True
+        )
+        display.display_debug1("installcheck_script returned %s", retcode)
         # retcode 0 means install is needed
         if retcode == 0:
             return 0
@@ -64,7 +65,7 @@ def installed_state(item_pl):
         return 1
 
     # this was deprecated a very long time ago. removing 02 Jan 2017
-    #if item_pl.get('softwareupdatename'):
+    # if item_pl.get('softwareupdatename'):
     #    available_apple_updates = appleupdates.softwareUpdateList()
     #    display.display_debug2(
     #        'Available Apple updates:\n%s', available_apple_updates)
@@ -81,15 +82,15 @@ def installed_state(item_pl):
     #        # return 1 so we're marked as not needing to be installed
     #        return 1
 
-    if item_pl.get('installer_type') == 'startosinstall':
+    if item_pl.get("installer_type") == "startosinstall":
         current_os_vers = osutils.getOsVersion()
-        item_os_vers = item_pl.get('version')
-        if int(item_os_vers.split('.')[0]) > 10:
+        item_os_vers = item_pl.get("version")
+        if int(item_os_vers.split(".")[0]) > 10:
             # if we're running Big Sur+, we just want the major (11)
-            item_os_vers = item_os_vers.split('.')[0]
+            item_os_vers = item_os_vers.split(".")[0]
         else:
             # need just major.minor part of the version -- 10.12 and not 10.12.4
-            item_os_vers = '.'.join(item_os_vers.split('.')[0:2])
+            item_os_vers = ".".join(item_os_vers.split(".")[0:2])
         comparison = compare.compare_versions(current_os_vers, item_os_vers)
         if comparison == compare.VERSION_IS_LOWER:
             return 0
@@ -98,17 +99,17 @@ def installed_state(item_pl):
         # version is the same
         return 1
 
-    if item_pl.get('installer_type') == 'profile':
-        identifier = item_pl.get('PayloadIdentifier')
-        hash_value = item_pl.get('installer_item_hash')
+    if item_pl.get("installer_type") == "profile":
+        identifier = item_pl.get("PayloadIdentifier")
+        hash_value = item_pl.get("installer_item_hash")
         if profiles.profile_needs_to_be_installed(identifier, hash_value):
             return 0
         # does not need to be installed
         return 1
 
-     # does 'installs' exist and is it non-empty?
-    if item_pl.get('installs', None):
-        installitems = item_pl['installs']
+    # does 'installs' exist and is it non-empty?
+    if item_pl.get("installs", None):
+        installitems = item_pl["installs"]
         for item in installitems:
             try:
                 comparison = compare.compare_item_version(item)
@@ -125,8 +126,8 @@ def installed_state(item_pl):
 
     # if there is no 'installs' key, then we'll use receipt info
     # to determine install status.
-    elif 'receipts' in item_pl:
-        receipts = item_pl['receipts']
+    elif "receipts" in item_pl:
+        receipts = item_pl["receipts"]
         for item in receipts:
             try:
                 comparison = compare.compare_receipt_version(item)
@@ -157,16 +158,16 @@ def some_version_installed(item_pl):
 
     Returns a boolean.
     """
-    if item_pl.get('OnDemand'):
+    if item_pl.get("OnDemand"):
         # These should never be counted as installed
-        display.display_debug1('This is an OnDemand item.')
+        display.display_debug1("This is an OnDemand item.")
         return False
 
-    if item_pl.get('installcheck_script'):
+    if item_pl.get("installcheck_script"):
         retcode = scriptutils.run_embedded_script(
-            'installcheck_script', item_pl, suppress_error=True)
-        display.display_debug1(
-            'installcheck_script returned %s', retcode)
+            "installcheck_script", item_pl, suppress_error=True
+        )
+        display.display_debug1("installcheck_script returned %s", retcode)
         # retcode 0 means install is needed
         # (ie, item is not installed)
         if retcode == 0:
@@ -175,17 +176,17 @@ def some_version_installed(item_pl):
         # that an install is not needed. We hope it's the latter.
         return True
 
-    if item_pl.get('installer_type') == 'startosinstall':
+    if item_pl.get("installer_type") == "startosinstall":
         # Some version of macOS is always installed!
         return True
 
-    if item_pl.get('installer_type') == 'profile':
-        identifier = item_pl.get('PayloadIdentifier')
+    if item_pl.get("installer_type") == "profile":
+        identifier = item_pl.get("PayloadIdentifier")
         return profiles.profile_is_installed(identifier)
 
     # does 'installs' exist and is it non-empty?
-    if item_pl.get('installs'):
-        installitems = item_pl['installs']
+    if item_pl.get("installs"):
+        installitems = item_pl["installs"]
         # check each item for existence
         for item in installitems:
             try:
@@ -199,8 +200,8 @@ def some_version_installed(item_pl):
 
     # if there is no 'installs' key, then we'll use receipt info
     # to determine install status.
-    elif 'receipts' in item_pl:
-        receipts = item_pl['receipts']
+    elif "receipts" in item_pl:
+        receipts = item_pl["receipts"]
         for item in receipts:
             try:
                 if compare.compare_receipt_version(item) == 0:
@@ -226,16 +227,16 @@ def evidence_this_is_installed(item_pl):
 
     Returns a boolean.
     """
-    if item_pl.get('OnDemand'):
+    if item_pl.get("OnDemand"):
         # These should never be counted as installed
-        display.display_debug1('This is an OnDemand item.')
+        display.display_debug1("This is an OnDemand item.")
         return False
 
-    if item_pl.get('uninstallcheck_script'):
+    if item_pl.get("uninstallcheck_script"):
         retcode = scriptutils.run_embedded_script(
-            'uninstallcheck_script', item_pl, suppress_error=True)
-        display.display_debug1(
-            'uninstallcheck_script returned %s', retcode)
+            "uninstallcheck_script", item_pl, suppress_error=True
+        )
+        display.display_debug1("uninstallcheck_script returned %s", retcode)
         # retcode 0 means uninstall is needed
         # (ie, item is installed)
         if retcode == 0:
@@ -244,11 +245,11 @@ def evidence_this_is_installed(item_pl):
         # that an uninstall is not needed
         return False
 
-    if item_pl.get('installcheck_script'):
+    if item_pl.get("installcheck_script"):
         retcode = scriptutils.run_embedded_script(
-            'installcheck_script', item_pl, suppress_error=True)
-        display.display_debug1(
-            'installcheck_script returned %s', retcode)
+            "installcheck_script", item_pl, suppress_error=True
+        )
+        display.display_debug1("installcheck_script returned %s", retcode)
         # retcode 0 means install is needed
         # (ie, item is not installed)
         if retcode == 0:
@@ -257,38 +258,35 @@ def evidence_this_is_installed(item_pl):
         # that an install is not needed
         return True
 
-    if item_pl.get('installer_type') == 'startosinstall':
+    if item_pl.get("installer_type") == "startosinstall":
         # Some version of macOS is always installed!
         return True
 
-    if item_pl.get('installer_type') == 'profile':
-        identifier = item_pl.get('PayloadIdentifier')
+    if item_pl.get("installer_type") == "profile":
+        identifier = item_pl.get("PayloadIdentifier")
         return profiles.profile_is_installed(identifier)
 
     foundallinstallitems = False
-    if ('installs' in item_pl and
-            item_pl.get('uninstall_method') != 'removepackages'):
+    if "installs" in item_pl and item_pl.get("uninstall_method") != "removepackages":
         display.display_debug2("Checking 'installs' items...")
-        installitems = item_pl['installs']
+        installitems = item_pl["installs"]
         if installitems:
             foundallinstallitems = True
             for item in installitems:
-                if 'path' in item:
+                if "path" in item:
                     # we can only check by path; if the item has been moved
                     # we're not clever enough to find it, and our removal
                     # methods are currently even less clever
-                    if not os.path.exists(item['path']):
+                    if not os.path.exists(item["path"]):
                         # this item isn't on disk
-                        display.display_debug2(
-                            '%s not found on disk.', item['path'])
+                        display.display_debug2("%s not found on disk.", item["path"])
                         foundallinstallitems = False
-        if (foundallinstallitems and
-                item_pl.get('uninstall_method') != 'removepackages'):
+        if foundallinstallitems and item_pl.get("uninstall_method") != "removepackages":
             return True
-    if item_pl.get('receipts'):
+    if item_pl.get("receipts"):
         display.display_debug2("Checking receipts...")
         pkgdata = catalogs.analyze_installed_pkgs()
-        if item_pl['name'] in pkgdata['installed_names']:
+        if item_pl["name"] in pkgdata["installed_names"]:
             return True
         else:
             display.display_debug2("Installed receipts don't match.")
@@ -298,5 +296,5 @@ def evidence_this_is_installed(item_pl):
     return False
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

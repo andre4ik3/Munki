@@ -27,6 +27,7 @@ from __future__ import absolute_import, print_function
 # No name 'Foo' in module 'Bar' warnings. Disable them.
 # pylint: disable=E0611
 from AppKit import NSWorkspace
+
 # pylint: enable=E0611
 
 # our libs
@@ -35,8 +36,8 @@ from .. import display
 
 
 def bundleid_is_running(app_bundleid):
-    '''Returns a boolean indicating if the application with the given
-    bundleid is currently running.'''
+    """Returns a boolean indicating if the application with the given
+    bundleid is currently running."""
     workspace = NSWorkspace.sharedWorkspace()
     running_apps = workspace.runningApplications()
     for app in running_apps:
@@ -46,14 +47,18 @@ def bundleid_is_running(app_bundleid):
 
 
 def bundleids_from_installs_list(pkginfo_pl):
-    '''Extracts a list of application bundle_ids from the installs list of a
-    pkginfo item'''
-    installs_list = pkginfo_pl.get('installs', [])
-    bundle_ids = [item.get('CFBundleIdentifier') for item in installs_list
-                  if (item.get('CFBundleIdentifier') and
-                      item.get('type') == 'application'
-                      or (item.get('type') == 'bundle' and
-                          item.get('path', '').endswith('.app')))]
+    """Extracts a list of application bundle_ids from the installs list of a
+    pkginfo item"""
+    installs_list = pkginfo_pl.get("installs", [])
+    bundle_ids = [
+        item.get("CFBundleIdentifier")
+        for item in installs_list
+        if (
+            item.get("CFBundleIdentifier")
+            and item.get("type") == "application"
+            or (item.get("type") == "bundle" and item.get("path", "").endswith(".app"))
+        )
+    ]
     return bundle_ids
 
 
@@ -62,82 +67,102 @@ def should_be_removed(item_pl):
     use.
     Returns a boolean."""
 
-    name = item_pl['name']
-    removal_info = item_pl.get('unused_software_removal_info')
+    name = item_pl["name"]
+    removal_info = item_pl.get("unused_software_removal_info")
     # do we have unused_software_removal_info?
     if not removal_info:
         return False
 
     display.display_debug1(
-        '\tChecking to see if %s should be removed due to lack of use...', name)
+        "\tChecking to see if %s should be removed due to lack of use...", name
+    )
     try:
-        removal_days = int(removal_info.get('removal_days', 0))
+        removal_days = int(removal_info.get("removal_days", 0))
         if removal_days < 1:
             raise ValueError
     except ValueError:
-        display.display_warning('Invalid removal_days: %s for item %s'
-                                % (removal_info.get('removal_days'), name))
+        display.display_warning(
+            "Invalid removal_days: %s for item %s"
+            % (removal_info.get("removal_days"), name)
+        )
         return False
 
-    display.display_debug1(
-        '\t\tNumber of days until removal is %s', removal_days)
+    display.display_debug1("\t\tNumber of days until removal is %s", removal_days)
     usage = app_usage.ApplicationUsageQuery()
     usage_data_days = usage.days_of_data()
     if usage_data_days is None or usage_data_days < removal_days:
         # we don't have usage data old enough to judge
         display.display_debug1(
-            '\t\tApplication usage data covers fewer than %s days.',
-            removal_days)
+            "\t\tApplication usage data covers fewer than %s days.", removal_days
+        )
         return False
 
     # check to see if we have an install request within the removal_days
-    days_since_install_request = usage.days_since_last_install_event(
-        'install', name)
-    if (days_since_install_request is not None and
-            days_since_install_request != -1 and
-            days_since_install_request <= removal_days):
-        display.display_debug1('\t\t%s had an install request %s days ago.',
-                               name, days_since_install_request)
+    days_since_install_request = usage.days_since_last_install_event("install", name)
+    if (
+        days_since_install_request is not None
+        and days_since_install_request != -1
+        and days_since_install_request <= removal_days
+    ):
+        display.display_debug1(
+            "\t\t%s had an install request %s days ago.",
+            name,
+            days_since_install_request,
+        )
         return False
 
     # get list of application bundle_ids to check
-    if 'bundle_ids' in removal_info:
-        bundle_ids = removal_info['bundle_ids']
+    if "bundle_ids" in removal_info:
+        bundle_ids = removal_info["bundle_ids"]
     else:
         # get application bundle_ids from installs list
         bundle_ids = bundleids_from_installs_list(item_pl)
     if not bundle_ids:
-        display.display_debug1('\\tNo application bundle_ids to check.')
+        display.display_debug1("\\tNo application bundle_ids to check.")
         return False
 
     # now check each bundleid to see if it's currently running or has been
     # activated in the past removal_days days
-    display.display_debug1('\t\tChecking bundle_ids: %s', bundle_ids)
+    display.display_debug1("\t\tChecking bundle_ids: %s", bundle_ids)
     for bundle_id in bundle_ids:
         if bundleid_is_running(bundle_id):
             display.display_debug1(
-                '\t\tApplication %s is currently running.' % bundle_id)
+                "\t\tApplication %s is currently running." % bundle_id
+            )
             return False
         days_since_last_activation = usage.days_since_last_usage_event(
-            'activate', bundle_id)
+            "activate", bundle_id
+        )
         if days_since_last_activation == -1:
             display.display_debug1(
-                '\t\t%s has not been activated in more than %s days...',
-                bundle_id, usage.days_of_data())
+                "\t\t%s has not been activated in more than %s days...",
+                bundle_id,
+                usage.days_of_data(),
+            )
         elif days_since_last_activation <= removal_days:
-            display.display_debug1('\t\t%s was last activated %s days ago',
-                                   bundle_id, days_since_last_activation)
+            display.display_debug1(
+                "\t\t%s was last activated %s days ago",
+                bundle_id,
+                days_since_last_activation,
+            )
             return False
         else:
-            display.display_debug1('\t\t%s was last activated %s days ago',
-                                   bundle_id, days_since_last_activation)
+            display.display_debug1(
+                "\t\t%s was last activated %s days ago",
+                bundle_id,
+                days_since_last_activation,
+            )
 
     # if we get this far we must not have found any apps used in the past
     # removal_days days, so we should set up a removal
-    display.display_info('Will add %s to the removal list since it has been '
-                         'unused for at least %s days...', name, removal_days)
+    display.display_info(
+        "Will add %s to the removal list since it has been "
+        "unused for at least %s days...",
+        name,
+        removal_days,
+    )
     return True
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

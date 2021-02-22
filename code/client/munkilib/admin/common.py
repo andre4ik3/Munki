@@ -23,11 +23,13 @@ from __future__ import absolute_import
 
 import os
 
+
 class AttributeDict(dict):
-    '''Class that allow us to access foo['bar'] as foo.bar, and return None
-    if foo.bar is not defined.'''
+    """Class that allow us to access foo['bar'] as foo.bar, and return None
+    if foo.bar is not defined."""
+
     def __getattr__(self, name):
-        '''Allow access to dictionary keys as attribute names.'''
+        """Allow access to dictionary keys as attribute names."""
         try:
             return super(AttributeDict, self).__getattr__(name)
         except AttributeError:
@@ -38,6 +40,6 @@ class AttributeDict(dict):
 
 
 def list_items_of_kind(repo, kind):
-    '''Returns a list of items of kind. Relative pathnames are prepended
-    with kind. (example: ['icons/Bar.png', 'icons/Foo.png'])'''
+    """Returns a list of items of kind. Relative pathnames are prepended
+    with kind. (example: ['icons/Bar.png', 'icons/Foo.png'])"""
     return [os.path.join(kind, item) for item in repo.itemlist(kind)]

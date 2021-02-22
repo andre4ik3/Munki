@@ -12,12 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''Python wrapper for original launchd checkin API'''
+"""Python wrapper for original launchd checkin API"""
 from __future__ import absolute_import
 
 # pylint: disable=wildcard-import
 # pylint: disable=unused-wildcard-import
 from ctypes import *
+
 # pylint: enable=unused-wildcard-import
 # pylint: enable=wildcard-import
 
@@ -32,7 +33,7 @@ launch_data_array_get_count = libc.launch_data_array_get_count
 launch_data_array_get_count.restype = c_size_t
 launch_data_array_get_count.argtypes = [c_launch_data_t]
 
-#launch_data_t launch_data_array_get_index(const launch_data_t, size_t)
+# launch_data_t launch_data_array_get_index(const launch_data_t, size_t)
 #  __ld_getter;
 launch_data_array_get_index = libc.launch_data_array_get_index
 launch_data_array_get_index.restype = c_launch_data_t
@@ -48,7 +49,7 @@ launch_data_dict_lookup = libc.launch_data_dict_lookup
 launch_data_dict_lookup.restype = c_launch_data_t
 launch_data_dict_lookup.argtypes = [c_launch_data_t, c_char_p]
 
-#void launch_data_dict_iterate(const launch_data_t, void (*)
+# void launch_data_dict_iterate(const launch_data_t, void (*)
 #  (const launch_data_t, const char *, void *), void *) __ld_iterator(1, 2)
 DICTITCALLBACK = CFUNCTYPE(c_void_p, c_launch_data_t, c_char_p, c_void_p)
 launch_data_dict_iterate = libc.launch_data_dict_iterate
@@ -142,8 +143,7 @@ LAUNCH_JOBKEY_PID = c_char_p("PID")
 LAUNCH_JOBKEY_THROTTLEINTERVAL = c_char_p("ThrottleInterval")
 LAUNCH_JOBKEY_LAUNCHONLYONCE = c_char_p("LaunchOnlyOnce")
 LAUNCH_JOBKEY_ABANDONPROCESSGROUP = c_char_p("AbandonProcessGroup")
-LAUNCH_JOBKEY_IGNOREPROCESSGROUPATSHUTDOWN = c_char_p(
-    "IgnoreProcessGroupAtShutdown")
+LAUNCH_JOBKEY_IGNOREPROCESSGROUPATSHUTDOWN = c_char_p("IgnoreProcessGroupAtShutdown")
 LAUNCH_JOBKEY_POLICIES = c_char_p("Policies")
 LAUNCH_JOBKEY_ENABLETRANSACTIONS = c_char_p("EnableTransactions")
 
@@ -204,13 +204,15 @@ LAUNCH_JOBSOCKETKEY_MULTICASTGROUP = c_char_p("MulticastGroup")
     LAUNCH_DATA_STRING,
     LAUNCH_DATA_OPAQUE,
     LAUNCH_DATA_ERRNO,
-    LAUNCH_DATA_MACHPORT
+    LAUNCH_DATA_MACHPORT,
 ) = list(range(1, 11))
 
 
 class LaunchDCheckInError(Exception):
-    '''Exception to raise if there is a checkin error'''
+    """Exception to raise if there is a checkin error"""
+
     pass
+
 
 def get_launchd_socket_fds():
     """Check in with launchd to get socket file descriptors."""
@@ -219,16 +221,18 @@ def get_launchd_socket_fds():
     launchd_socket_fds = dict()
 
     def add_socket(launch_array, name, _context=None):
-        '''Callback for dict iterator.'''
+        """Callback for dict iterator."""
         if launch_data_get_type(launch_array) != LAUNCH_DATA_ARRAY:
             raise LaunchDCheckInError(
-                "Could not get file descriptor array: Type mismatch")
+                "Could not get file descriptor array: Type mismatch"
+            )
         fds = list()
         for i in range(launch_data_array_get_count(launch_array)):
             data_fd = launch_data_array_get_index(launch_array, i)
             if launch_data_get_type(data_fd) != LAUNCH_DATA_FD:
                 raise LaunchDCheckInError(
-                    "Could not get file descriptor array entry: Type mismatch")
+                    "Could not get file descriptor array entry: Type mismatch"
+                )
             fds.append(launch_data_get_fd(data_fd))
         launchd_socket_fds[name] = fds
 
@@ -249,16 +253,17 @@ def get_launchd_socket_fds():
             raise LaunchDCheckInError("Checkin failed. Error: %s" % errno)
 
         # Get a dictionary of sockets.
-        sockets = launch_data_dict_lookup(
-            checkin_response, LAUNCH_JOBKEY_SOCKETS)
+        sockets = launch_data_dict_lookup(checkin_response, LAUNCH_JOBKEY_SOCKETS)
         if sockets is None:
             raise LaunchDCheckInError(
-                "Could not get socket dictionary from checkin response")
+                "Could not get socket dictionary from checkin response"
+            )
 
         if launch_data_get_type(sockets) != LAUNCH_DATA_DICTIONARY:
             raise LaunchDCheckInError(
                 "Could not get socket dictionary from checkin response: "
-                "Type mismatch")
+                "Type mismatch"
+            )
 
         # Iterate over the items with add_socket callback.
         launch_data_dict_iterate(sockets, DICTITCALLBACK(add_socket), None)

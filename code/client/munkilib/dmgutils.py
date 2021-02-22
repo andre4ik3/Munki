@@ -36,21 +36,24 @@ from .wrappers import readPlistFromString, PlistReadError
 
 # dmg helpers
 
+
 def DMGisWritable(dmgpath):
-    '''Attempts to determine if the given disk image is writable'''
+    """Attempts to determine if the given disk image is writable"""
     proc = subprocess.Popen(
-        ['/usr/bin/hdiutil', 'imageinfo', dmgpath, '-plist'],
-        bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ["/usr/bin/hdiutil", "imageinfo", dmgpath, "-plist"],
+        bufsize=-1,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     (out, err) = proc.communicate()
     if err:
-        display.display_error(
-            u'hdiutil error %s with image %s.', err, dmgpath)
+        display.display_error(u"hdiutil error %s with image %s.", err, dmgpath)
     (pliststr, out) = utils.getFirstPlist(out)
     if pliststr:
         try:
             plist = readPlistFromString(pliststr)
-            dmg_format = plist.get('Format')
-            if dmg_format in ['UDSB', 'UDSP', 'UDRW', 'RdWr']:
+            dmg_format = plist.get("Format")
+            if dmg_format in ["UDSB", "UDSP", "UDRW", "RdWr"]:
                 return True
         except PlistReadError:
             pass
@@ -58,23 +61,25 @@ def DMGisWritable(dmgpath):
 
 
 def dmg_has_sla(dmgpath):
-    '''Returns true if dmg has a Software License Agreement.
-    These dmgs normally cannot be attached without user intervention'''
+    """Returns true if dmg has a Software License Agreement.
+    These dmgs normally cannot be attached without user intervention"""
     has_sla = False
     proc = subprocess.Popen(
-        ['/usr/bin/hdiutil', 'imageinfo', dmgpath, '-plist'],
-        bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ["/usr/bin/hdiutil", "imageinfo", dmgpath, "-plist"],
+        bufsize=-1,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     (out, err) = proc.communicate()
     if err:
-        display.display_error(
-            u'hdiutil error %s with image %s.', err, dmgpath)
+        display.display_error(u"hdiutil error %s with image %s.", err, dmgpath)
     (pliststr, out) = utils.getFirstPlist(out)
     if pliststr:
         try:
             plist = readPlistFromString(pliststr)
-            properties = plist.get('Properties')
+            properties = plist.get("Properties")
             if properties:
-                has_sla = properties.get('Software License Agreement', False)
+                has_sla = properties.get("Software License Agreement", False)
         except PlistReadError:
             pass
 
@@ -88,11 +93,14 @@ def hdiutil_info():
     Returns the root object parsed with readPlistFromString()
     """
     proc = subprocess.Popen(
-        ['/usr/bin/hdiutil', 'info', '-plist'],
-        bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ["/usr/bin/hdiutil", "info", "-plist"],
+        bufsize=-1,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     (out, err) = proc.communicate()
     if err:
-        display.display_error(u'hdiutil info error: %s', err.decode("UTF-8"))
+        display.display_error(u"hdiutil info error: %s", err.decode("UTF-8"))
     (pliststr, out) = utils.getFirstPlist(out)
     if pliststr:
         try:
@@ -109,12 +117,12 @@ def diskImageIsMounted(dmgpath):
     """
     isMounted = False
     infoplist = hdiutil_info()
-    for imageProperties in infoplist.get('images'):
-        if 'image-path' in imageProperties:
-            imagepath = imageProperties['image-path']
+    for imageProperties in infoplist.get("images"):
+        if "image-path" in imageProperties:
+            imagepath = imageProperties["image-path"]
             if imagepath == dmgpath:
-                for entity in imageProperties.get('system-entities', []):
-                    if entity.get('mount-point'):
+                for entity in imageProperties.get("system-entities", []):
+                    if entity.get("mount-point"):
                         isMounted = True
                         break
     return isMounted
@@ -128,11 +136,11 @@ def pathIsVolumeMountPoint(path):
     """
     isMountPoint = False
     infoplist = hdiutil_info()
-    for imageProperties in infoplist.get('images'):
-        if 'image-path' in imageProperties:
-            for entity in imageProperties.get('system-entities', []):
-                if 'mount-point' in entity:
-                    mountpoint = entity['mount-point']
+    for imageProperties in infoplist.get("images"):
+        if "image-path" in imageProperties:
+            for entity in imageProperties.get("system-entities", []):
+                if "mount-point" in entity:
+                    mountpoint = entity["mount-point"]
                     if path == mountpoint:
                         isMountPoint = True
                         break
@@ -148,12 +156,12 @@ def diskImageForMountPoint(path):
     """
     dmgpath = None
     infoplist = hdiutil_info()
-    for imageProperties in infoplist.get('images'):
-        if 'image-path' in imageProperties:
-            imagepath = imageProperties['image-path']
-            for entity in imageProperties.get('system-entities', []):
-                if 'mount-point' in entity:
-                    mountpoint = entity['mount-point']
+    for imageProperties in infoplist.get("images"):
+        if "image-path" in imageProperties:
+            imagepath = imageProperties["image-path"]
+            for entity in imageProperties.get("system-entities", []):
+                if "mount-point" in entity:
+                    mountpoint = entity["mount-point"]
                     if os.path.samefile(path, mountpoint):
                         dmgpath = imagepath
     return dmgpath
@@ -165,19 +173,24 @@ def mount_points_for_disk_image(dmgpath):
     """
     mountpoints = []
     infoplist = hdiutil_info()
-    for imageProperties in infoplist.get('images'):
-        if 'image-path' in imageProperties:
-            imagepath = imageProperties['image-path']
+    for imageProperties in infoplist.get("images"):
+        if "image-path" in imageProperties:
+            imagepath = imageProperties["image-path"]
             if imagepath == dmgpath:
-                for entity in imageProperties.get('system-entities', []):
-                    if 'mount-point' in entity:
-                        mountpoints.append(entity['mount-point'])
+                for entity in imageProperties.get("system-entities", []):
+                    if "mount-point" in entity:
+                        mountpoints.append(entity["mount-point"])
                 break
     return mountpoints
 
 
-def mountdmg(dmgpath, use_shadow=False, use_existing_mounts=False,
-             random_mountpoint=True, skip_verification=False):
+def mountdmg(
+    dmgpath,
+    use_shadow=False,
+    use_existing_mounts=False,
+    random_mountpoint=True,
+    skip_verification=False,
+):
     """
     Attempts to mount the dmg at dmgpath
     and returns a list of mountpoints
@@ -195,38 +208,44 @@ def mountdmg(dmgpath, use_shadow=False, use_existing_mounts=False,
             return mountpoints
 
     # Attempt to mount the dmg
-    stdin = b''
+    stdin = b""
     if dmg_has_sla(dmgpath):
-        stdin = b'Y\n'
+        stdin = b"Y\n"
         display.display_detail(
-            'NOTE: %s has embedded Software License Agreement' % dmgname)
-    cmd = ['/usr/bin/hdiutil', 'attach', dmgpath, '-nobrowse', '-plist']
+            "NOTE: %s has embedded Software License Agreement" % dmgname
+        )
+    cmd = ["/usr/bin/hdiutil", "attach", dmgpath, "-nobrowse", "-plist"]
     if random_mountpoint:
-        cmd.extend(['-mountRandom', '/tmp'])
+        cmd.extend(["-mountRandom", "/tmp"])
     if use_shadow:
-        cmd.append('-shadow')
+        cmd.append("-shadow")
     if skip_verification:
-        cmd.append('-noverify')
-    proc = subprocess.Popen(cmd,
-                            bufsize=-1, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        cmd.append("-noverify")
+    proc = subprocess.Popen(
+        cmd,
+        bufsize=-1,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+    )
     (out, err) = proc.communicate(stdin)
     if proc.returncode:
         display.display_error(
-            u'Error: "%s" while mounting %s.'
-            % (err.decode('UTF-8').rstrip(), dmgname))
+            u'Error: "%s" while mounting %s.' % (err.decode("UTF-8").rstrip(), dmgname)
+        )
     (pliststr, out) = utils.getFirstPlist(out)
     if pliststr:
         try:
             plist = readPlistFromString(pliststr)
-            for entity in plist.get('system-entities', []):
-                if 'mount-point' in entity:
-                    mountpoints.append(entity['mount-point'])
+            for entity in plist.get("system-entities", []):
+                if "mount-point" in entity:
+                    mountpoints.append(entity["mount-point"])
         except PlistReadError as err:
             display.display_error("%s" % err)
             display.display_error(
-                'Bad plist string returned when mounting diskimage %s:\n%s'
-                % (dmgname, pliststr))
+                "Bad plist string returned when mounting diskimage %s:\n%s"
+                % (dmgname, pliststr)
+            )
     return mountpoints
 
 
@@ -234,22 +253,25 @@ def unmountdmg(mountpoint):
     """
     Unmounts the dmg at mountpoint
     """
-    cmd = ['/usr/bin/hdiutil', 'detach', mountpoint]
-    proc = subprocess.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+    cmd = ["/usr/bin/hdiutil", "detach", mountpoint]
+    proc = subprocess.Popen(
+        cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     (dummy_output, err) = proc.communicate()
     if proc.returncode:
         # ordinary unmount unsuccessful, try forcing
-        display.display_warning('Polite unmount failed: %s' % err)
-        display.display_warning('Attempting to force unmount %s' % mountpoint)
-        cmd.append('-force')
-        proc = subprocess.Popen(cmd, bufsize=-1, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
+        display.display_warning("Polite unmount failed: %s" % err)
+        display.display_warning("Attempting to force unmount %s" % mountpoint)
+        cmd.append("-force")
+        proc = subprocess.Popen(
+            cmd, bufsize=-1, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         (dummy_output, err) = proc.communicate()
         if proc.returncode:
             display.display_warning(
-                'Failed to unmount %s: %s', mountpoint, err.decode("UTF-8"))
+                "Failed to unmount %s: %s", mountpoint, err.decode("UTF-8")
+            )
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

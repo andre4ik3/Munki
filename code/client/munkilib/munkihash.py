@@ -26,6 +26,7 @@ from __future__ import absolute_import, print_function
 import hashlib
 import os
 
+
 def gethash(filename, hash_function):
     """
     Calculates the hashvalue of the given file with the given hash_function.
@@ -39,18 +40,18 @@ def gethash(filename, hash_function):
       The hashvalue of the given file as hex string.
     """
     if not os.path.isfile(filename):
-        return 'NOT A FILE'
+        return "NOT A FILE"
     try:
-        fileref = open(filename, 'rb')
+        fileref = open(filename, "rb")
         while True:
-            chunk = fileref.read(2**16)
+            chunk = fileref.read(2 ** 16)
             if not chunk:
                 break
             hash_function.update(chunk)
         fileref.close()
         return hash_function.hexdigest()
     except (OSError, IOError):
-        return 'HASH_ERROR'
+        return "HASH_ERROR"
 
 
 def getmd5hash(filename):
@@ -69,5 +70,5 @@ def getsha256hash(filename):
     return gethash(filename, hash_function)
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

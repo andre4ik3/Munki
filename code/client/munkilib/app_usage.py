@@ -32,90 +32,93 @@ import sqlite3
 import time
 
 # our libs
-#from . import display
+# from . import display
 from . import prefs
 
 
 # SQLite db to store application usage data
 APPLICATION_USAGE_DB = os.path.join(
-    prefs.pref('ManagedInstallDir'), 'application_usage.sqlite')
+    prefs.pref("ManagedInstallDir"), "application_usage.sqlite"
+)
 # SQL to detect existence of application usage table
-APPLICATION_USAGE_TABLE_DETECT = 'SELECT * FROM application_usage LIMIT 1'
+APPLICATION_USAGE_TABLE_DETECT = "SELECT * FROM application_usage LIMIT 1"
 # This table creates ~64 bytes of disk data per event.
 APPLICATION_USAGE_TABLE_CREATE = (
-    'CREATE TABLE application_usage ('
-    'event TEXT,'
-    'bundle_id TEXT,'
-    'app_version TEXT,'
-    'app_path TEXT,'
-    'last_time INTEGER DEFAULT 0,'
-    'number_times INTEGER DEFAULT 0,'
-    'PRIMARY KEY (event, bundle_id)'
-    ')')
+    "CREATE TABLE application_usage ("
+    "event TEXT,"
+    "bundle_id TEXT,"
+    "app_version TEXT,"
+    "app_path TEXT,"
+    "last_time INTEGER DEFAULT 0,"
+    "number_times INTEGER DEFAULT 0,"
+    "PRIMARY KEY (event, bundle_id)"
+    ")"
+)
 
 APPLICATION_USAGE_TABLE_INSERT = (
-    'INSERT INTO application_usage VALUES ('
-    '?, '  # event
-    '?, '  # bundle_id
-    '?, '  # app_version
-    '?, '  # app_path
-    '?, '  # last_time
-    '? '   # number_times
-    ')'
-    )
+    "INSERT INTO application_usage VALUES ("
+    "?, "  # event
+    "?, "  # bundle_id
+    "?, "  # app_version
+    "?, "  # app_path
+    "?, "  # last_time
+    "? "  # number_times
+    ")"
+)
 
 # keep same order of columns as APPLICATION_USAGE_TABLE_INSERT
 APPLICATION_USAGE_TABLE_SELECT = (
-    'SELECT '
-    'event, bundle_id, app_version, app_path, last_time, number_times '
-    'FROM application_usage'
-    )
+    "SELECT "
+    "event, bundle_id, app_version, app_path, last_time, number_times "
+    "FROM application_usage"
+)
 
 APPLICATION_USAGE_TABLE_UPDATE = (
-    'UPDATE application_usage SET '
-    'app_version=?,'
-    'app_path=?,'
-    'last_time=?,'
-    'number_times=number_times+1 '
-    'WHERE event=? and bundle_id=?'
-    )
+    "UPDATE application_usage SET "
+    "app_version=?,"
+    "app_path=?,"
+    "last_time=?,"
+    "number_times=number_times+1 "
+    "WHERE event=? and bundle_id=?"
+)
 
-INSTALL_REQUEST_TABLE_DETECT = 'SELECT * FROM install_requests LIMIT 1'
+INSTALL_REQUEST_TABLE_DETECT = "SELECT * FROM install_requests LIMIT 1"
 
 INSTALL_REQUEST_TABLE_CREATE = (
-    'CREATE TABLE install_requests ('
-    'event TEXT,'
-    'item_name TEXT,'
-    'item_version TEXT,'
-    'last_time INTEGER DEFAULT 0,'
-    'number_times INTEGER DEFAULT 0,'
-    'PRIMARY KEY (event, item_name)'
-    ')')
+    "CREATE TABLE install_requests ("
+    "event TEXT,"
+    "item_name TEXT,"
+    "item_version TEXT,"
+    "last_time INTEGER DEFAULT 0,"
+    "number_times INTEGER DEFAULT 0,"
+    "PRIMARY KEY (event, item_name)"
+    ")"
+)
 
 INSTALL_REQUEST_TABLE_INSERT = (
-    'INSERT INTO install_requests VALUES ('
-    '?, '  # event
-    '?, '  # item_name
-    '?, '  # item_version
-    '?, '  # last_time
-    '? '   # number_times
-    ')'
-    )
+    "INSERT INTO install_requests VALUES ("
+    "?, "  # event
+    "?, "  # item_name
+    "?, "  # item_version
+    "?, "  # last_time
+    "? "  # number_times
+    ")"
+)
 
 # keep same order of columns as INSTALL_REQUEST_TABLE_INSERT
 INSTALL_REQUEST_TABLE_SELECT = (
-    'SELECT '
-    'event, item_name, item_version, last_time, number_times '
-    'FROM install_requests'
-    )
+    "SELECT "
+    "event, item_name, item_version, last_time, number_times "
+    "FROM install_requests"
+)
 
 INSTALL_REQUEST_TABLE_UPDATE = (
-    'UPDATE install_requests SET '
-    'item_version=?,'
-    'last_time=?,'
-    'number_times=number_times+1 '
-    'WHERE event=? and item_name=?'
-    )
+    "UPDATE install_requests SET "
+    "item_version=?,"
+    "last_time=?,"
+    "number_times=number_times+1 "
+    "WHERE event=? and item_name=?"
+)
 
 
 class ApplicationUsageRecorder(object):
@@ -160,7 +163,7 @@ class ApplicationUsageRecorder(object):
             conn.execute(table_detection_sql)
             exists = True
         except sqlite3.OperationalError as err:
-            if err.args[0].startswith('no such table'):
+            if err.args[0].startswith("no such table"):
                 exists = False
             else:
                 raise
@@ -216,9 +219,9 @@ class ApplicationUsageRecorder(object):
         # statements in most cases.
 
         now = int(time.time())
-        bundle_id = app_dict.get('bundle_id', 'UNKNOWN_APP')
-        app_version = app_dict.get('version', '0')
-        app_path = app_dict.get('path', '')
+        bundle_id = app_dict.get("bundle_id", "UNKNOWN_APP")
+        app_version = app_dict.get("version", "0")
+        app_path = app_dict.get("path", "")
         data = (app_version, app_path, now, event, bundle_id)
         query = conn.execute(APPLICATION_USAGE_TABLE_UPDATE, data)
         if query.rowcount == 0:
@@ -251,9 +254,9 @@ class ApplicationUsageRecorder(object):
         # statements in most cases.
 
         now = int(time.time())
-        event = request_dict.get('event', 'UNKNOWN_EVENT')
-        item_name = request_dict.get('name', 'UNKNOWN_ITEM')
-        item_version = request_dict.get('version', '0')
+        event = request_dict.get("event", "UNKNOWN_EVENT")
+        item_name = request_dict.get("name", "UNKNOWN_ITEM")
+        item_version = request_dict.get("version", "0")
         data = (item_version, now, event, item_name)
         query = conn.execute(INSTALL_REQUEST_TABLE_UPDATE, data)
         if query.rowcount == 0:
@@ -269,56 +272,61 @@ class ApplicationUsageRecorder(object):
         """
         recovered = 0
 
-        tables = [{'select_sql': APPLICATION_USAGE_TABLE_SELECT,
-                   'create_sql': APPLICATION_USAGE_TABLE_CREATE,
-                   'insert_sql': APPLICATION_USAGE_TABLE_INSERT,
-                   'rows': []},
-                  {'select_sql': INSTALL_REQUEST_TABLE_SELECT,
-                   'create_sql': INSTALL_REQUEST_TABLE_CREATE,
-                   'insert_sql': INSTALL_REQUEST_TABLE_INSERT,
-                   'rows': []}]
+        tables = [
+            {
+                "select_sql": APPLICATION_USAGE_TABLE_SELECT,
+                "create_sql": APPLICATION_USAGE_TABLE_CREATE,
+                "insert_sql": APPLICATION_USAGE_TABLE_INSERT,
+                "rows": [],
+            },
+            {
+                "select_sql": INSTALL_REQUEST_TABLE_SELECT,
+                "create_sql": INSTALL_REQUEST_TABLE_CREATE,
+                "insert_sql": INSTALL_REQUEST_TABLE_INSERT,
+                "rows": [],
+            },
+        ]
 
         try:
             conn = self._connect()
             for table in tables:
-                query = conn.execute(table['select_sql'])
+                query = conn.execute(table["select_sql"])
                 try:
                     while True:
                         row = query.fetchone()
                         if not row:
                             break
-                        table['rows'].append(row)
+                        table["rows"].append(row)
                 except sqlite3.Error:
                     pass
                     # ok, done, hit an error
             conn.close()
         except sqlite3.Error as err:
-            logging.error('Unhandled error reading existing db: %s', str(err))
+            logging.error("Unhandled error reading existing db: %s", str(err))
             return recovered
 
-        usage_db_tmp = '%s.tmp.%d' % (APPLICATION_USAGE_DB, os.getpid())
+        usage_db_tmp = "%s.tmp.%d" % (APPLICATION_USAGE_DB, os.getpid())
 
         recovered = 0
         try:
             conn = self._connect(usage_db_tmp)
             for table in tables:
-                conn.execute(table['create_sql'])
-                for row in table['rows']:
-                    if row[1] == '':
+                conn.execute(table["create_sql"])
+                for row in table["rows"]:
+                    if row[1] == "":
                         # skip rows with empty bundle_id or item_name
                         continue
                     try:
-                        conn.execute(table['insert_sql'], row)
+                        conn.execute(table["insert_sql"], row)
                         conn.commit()
                         recovered += 1
                     except sqlite3.IntegrityError as err:
-                        logging.error(
-                            'Ignored error: %s: %s', str(err), str(row))
+                        logging.error("Ignored error: %s: %s", str(err), str(row))
             self._close(conn)
             os.unlink(APPLICATION_USAGE_DB)
             os.rename(usage_db_tmp, APPLICATION_USAGE_DB)
         except sqlite3.Error as err:
-            logging.error('Unhandled error: %s', str(err))
+            logging.error("Unhandled error: %s", str(err))
             recovered = 0
 
         return recovered
@@ -327,8 +335,7 @@ class ApplicationUsageRecorder(object):
         """Verify database integrity."""
         conn = self._connect()
         try:
-            for sql in [APPLICATION_USAGE_TABLE_SELECT,
-                        INSTALL_REQUEST_TABLE_SELECT]:
+            for sql in [APPLICATION_USAGE_TABLE_SELECT, INSTALL_REQUEST_TABLE_SELECT]:
                 query = conn.execute(sql)
                 dummy_rows = query.fetchall()
             query_ok = True
@@ -337,13 +344,12 @@ class ApplicationUsageRecorder(object):
 
         if not query_ok:
             if fix:
-                logging.warning('Recreating database.')
-                logging.warning(
-                    'Recovered %d rows.', self._recreate_database())
+                logging.warning("Recreating database.")
+                logging.warning("Recovered %d rows.", self._recreate_database())
             else:
-                logging.warning('Database is malformed.')
+                logging.warning("Database is malformed.")
         else:
-            logging.info('Database is OK.')
+            logging.info("Database is OK.")
 
     def log_application_usage(self, event, app_dict):
         """Log application usage.
@@ -351,15 +357,19 @@ class ApplicationUsageRecorder(object):
             event: str, like "launch" or "quit"
             app_dict: Dictionary containing bundle_id, version, path
         """
-        if app_dict.get('bundle_id') is None:
+        if app_dict.get("bundle_id") is None:
             logging.warning(
-                'Application object had no bundle_id: %s', app_dict.get('path'))
+                "Application object had no bundle_id: %s", app_dict.get("path")
+            )
             return
 
-        logging.debug('%s: bundle_id: %s version: %s path: %s', event,
-                      app_dict.get('bundle_id'),
-                      app_dict.get('version'),
-                      app_dict.get('path'))
+        logging.debug(
+            "%s: bundle_id: %s version: %s path: %s",
+            event,
+            app_dict.get("bundle_id"),
+            app_dict.get("version"),
+            app_dict.get("path"),
+        )
         try:
             conn = self._connect()
             if not self._detect_application_usage_table(conn):
@@ -367,11 +377,11 @@ class ApplicationUsageRecorder(object):
             self._insert_application_usage(conn, event, app_dict)
             conn.commit()
         except sqlite3.OperationalError as err:
-            logging.error('Error writing %s event to database: %s', event, err)
+            logging.error("Error writing %s event to database: %s", event, err)
         except sqlite3.DatabaseError as err:
-            if err.args[0] == 'database disk image is malformed':
+            if err.args[0] == "database disk image is malformed":
                 self._recreate_database()
-            logging.error('Database error: %s', err)
+            logging.error("Database error: %s", err)
         self._close(conn)
 
     def log_install_request(self, request_dict):
@@ -382,16 +392,16 @@ class ApplicationUsageRecorder(object):
                 name: str
                 version: str
         """
-        if (request_dict.get('event') is None or
-                request_dict.get('name') is None):
-            logging.warning(
-                'Request dict is missing event or name: %s', request_dict)
+        if request_dict.get("event") is None or request_dict.get("name") is None:
+            logging.warning("Request dict is missing event or name: %s", request_dict)
             return
 
-        logging.debug('%s: name: %s version: %s',
-                      request_dict.get('event'),
-                      request_dict.get('name'),
-                      request_dict.get('version'))
+        logging.debug(
+            "%s: name: %s version: %s",
+            request_dict.get("event"),
+            request_dict.get("name"),
+            request_dict.get("version"),
+        )
 
         try:
             conn = self._connect()
@@ -400,31 +410,30 @@ class ApplicationUsageRecorder(object):
             self._insert_install_request(conn, request_dict)
             conn.commit()
         except sqlite3.OperationalError as err:
-            logging.error('Error writing install request to database: %s', err)
+            logging.error("Error writing install request to database: %s", err)
         except sqlite3.DatabaseError as err:
-            if err.args[0] == 'database is malformed':
+            if err.args[0] == "database is malformed":
                 self._recreate_database()
-            logging.error('Database error: %s', err)
+            logging.error("Database error: %s", err)
         self._close(conn)
 
 
 class ApplicationUsageQuery(object):
-    '''A class to query our application usage db to determine the last time
-    an application was activated'''
+    """A class to query our application usage db to determine the last time
+    an application was activated"""
 
     def __init__(self):
-        '''Open connection to DB'''
+        """Open connection to DB"""
         self.database = APPLICATION_USAGE_DB
         self.day_in_seconds = 24 * 60 * 60
         try:
             self.conn = sqlite3.connect(self.database)
         except sqlite3.Error as err:
-            logging.error(
-                'Error connecting to %s: %s', self.database, str(err))
+            logging.error("Error connecting to %s: %s", self.database, str(err))
             self.conn = None
 
     def __del__(self):
-        '''Close connection to DB'''
+        """Close connection to DB"""
         if self.conn:
             try:
                 self.conn.close()
@@ -432,11 +441,10 @@ class ApplicationUsageQuery(object):
                 pass
 
     def days_of_data(self):
-        '''Returns how many days of data we have on file'''
+        """Returns how many days of data we have on file"""
 
         oldest_record_query = (
-            'SELECT last_time FROM application_usage '
-            'ORDER BY last_time ASC LIMIT 1'
+            "SELECT last_time FROM application_usage " "ORDER BY last_time ASC LIMIT 1"
         )
 
         if not self.conn:
@@ -445,22 +453,20 @@ class ApplicationUsageQuery(object):
             query = self.conn.execute(oldest_record_query)
             row = query.fetchone()
             time_diff = int(time.time()) - int(row[0])
-            return int(time_diff/self.day_in_seconds)
+            return int(time_diff / self.day_in_seconds)
         except sqlite3.Error as err:
-            logging.error(
-                'Error querying %s: %s', self.database, str(err))
+            logging.error("Error querying %s: %s", self.database, str(err))
             return 0
 
     def days_since_last_usage_event(self, event, bundle_id):
-        '''Perform db query and return the number of days since the last event
+        """Perform db query and return the number of days since the last event
         occurred for bundle_id.
         Returns None if database is missing or broken;
         Returns -1 if there is no event record for the bundle_id
-        Returns int number of days since last event otherwise'''
+        Returns int number of days since last event otherwise"""
 
         usage_query = (
-            'SELECT last_time FROM application_usage '
-            'WHERE event=? AND bundle_id=?'
+            "SELECT last_time FROM application_usage " "WHERE event=? AND bundle_id=?"
         )
 
         if not self.conn:
@@ -471,24 +477,22 @@ class ApplicationUsageQuery(object):
             row = query.fetchone()
             if row:
                 time_diff = int(time.time()) - int(row[0])
-                return int(time_diff/self.day_in_seconds)
+                return int(time_diff / self.day_in_seconds)
             # no row
             return -1
         except sqlite3.Error as err:
-            logging.error(
-                'Error querying %s: %s', self.database, str(err))
+            logging.error("Error querying %s: %s", self.database, str(err))
             return None
 
     def days_since_last_install_event(self, event, item_name):
-        '''Perform db query and return the number of days since the last
+        """Perform db query and return the number of days since the last
         install request event occurred for item_name.
         Returns None if database is missing or broken;
         Returns -1 if there are no matching records for the item_name
-        Returns int number of days since last event otherwise'''
+        Returns int number of days since last event otherwise"""
 
         install_query = (
-            'SELECT last_time FROM install_requests '
-            'WHERE event=? AND item_name=?'
+            "SELECT last_time FROM install_requests " "WHERE event=? AND item_name=?"
         )
 
         if not self.conn:
@@ -499,14 +503,13 @@ class ApplicationUsageQuery(object):
             row = query.fetchone()
             if row:
                 time_diff = int(time.time()) - int(row[0])
-                return int(time_diff/self.day_in_seconds)
+                return int(time_diff / self.day_in_seconds)
             # no row
             return -1
         except sqlite3.Error as err:
-            logging.error(
-                'Error querying %s: %s', self.database, str(err))
+            logging.error("Error querying %s: %s", self.database, str(err))
             return None
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

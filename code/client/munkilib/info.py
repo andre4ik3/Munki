@@ -35,11 +35,13 @@ import sys
 # Apple's libs
 import objc
 import LaunchServices
+
 # PyLint cannot properly find names inside Cocoa libraries, so issues bogus
 # No name 'Foo' in module 'Bar' warnings. Disable them.
 # pylint: disable=E0611
 from Foundation import NSMetadataQuery, NSPredicate, NSRunLoop
 from Foundation import NSBundle, NSDate, NSTimeZone
+
 # pylint: enable=E0611
 
 # our libs
@@ -54,16 +56,29 @@ from . import FoundationPlist
 from .wrappers import unicode_or_str
 
 try:
-    _ = xrange # pylint: disable=xrange-builtin
+    _ = xrange  # pylint: disable=xrange-builtin
 except NameError:
     # no xrange in Python 3
-    xrange = range # pylint: disable=redefined-builtin,invalid-name
+    xrange = range  # pylint: disable=redefined-builtin,invalid-name
 
 # Always ignore these directories when discovering applications.
-APP_DISCOVERY_EXCLUSION_DIRS = set([
-    'Volumes', 'tmp', '.vol', '.Trashes', '.MobileBackups', '.Spotlight-V100',
-    '.fseventsd', 'Network', 'net', 'home', 'cores', 'dev', 'private',
-    ])
+APP_DISCOVERY_EXCLUSION_DIRS = set(
+    [
+        "Volumes",
+        "tmp",
+        ".vol",
+        ".Trashes",
+        ".MobileBackups",
+        ".Spotlight-V100",
+        ".fseventsd",
+        "Network",
+        "net",
+        "home",
+        "cores",
+        "dev",
+        "private",
+    ]
+)
 
 
 class Error(Exception):
@@ -105,8 +120,7 @@ class Popen(subprocess.Popen):
         output = []
         inactive = 0
         while True:
-            (rlist, dummy_wlist, dummy_xlist) = select.select(
-                [fileobj], [], [], 1.0)
+            (rlist, dummy_wlist, dummy_xlist) = select.select([fileobj], [], [], 1.0)
 
             if not rlist:
                 inactive += 1  # approx -- py select doesn't return tv
@@ -116,7 +130,7 @@ class Popen(subprocess.Popen):
                 inactive = 0
                 char = fileobj.read(1)
                 output.append(char)  # keep newline
-                if char == '' or char == '\n':
+                if char == "" or char == "\n":
                     break
 
         set_file_nonblock(fileobj, non_blocking=False)
@@ -124,7 +138,7 @@ class Popen(subprocess.Popen):
         if inactive >= timeout:
             raise TimeoutError  # note, an incomplete line can be lost
         else:
-            return ''.join(output)
+            return "".join(output)
 
     def communicate(self, std_in=None, timeout=0):
         """Communicate, optionally ending after a timeout of no activity.
@@ -163,8 +177,7 @@ class Popen(subprocess.Popen):
         returncode = None
         inactive = 0
         while returncode is None:
-            (rlist, dummy_wlist, dummy_xlist) = select.select(
-                fds, [], [], 1.0)
+            (rlist, dummy_wlist, dummy_xlist) = select.select(fds, [], [], 1.0)
 
             if not rlist:
                 inactive += 1
@@ -181,11 +194,11 @@ class Popen(subprocess.Popen):
             returncode = self.poll()
 
         if self.stdout is not None:
-            stdout_str = b''.join(stdout)
+            stdout_str = b"".join(stdout)
         else:
             stdout_str = None
         if self.stderr is not None:
-            stderr_str = b''.join(stderr)
+            stderr_str = b"".join(stderr)
         else:
             stderr_str = None
 
@@ -202,7 +215,7 @@ def _asciiz_to_bytestr(a_bytestring):
     """Transform a null-terminated string of any length into a Python str.
     Returns a normal Python str that has been terminated.
     """
-    i = a_bytestring.find(b'\0')
+    i = a_bytestring.find(b"\0")
     if i > -1:
         a_bytestring = a_bytestring[0:i]
     return a_bytestring
@@ -215,13 +228,13 @@ def _f_flags_to_set(f_flags):
     # see /usr/include/sys/mount.h for the bitmask constants.
     flags = set()
     if f_flags & 0x1:
-        flags.add('read-only')
+        flags.add("read-only")
     if f_flags & 0x1000:
-        flags.add('local')
+        flags.add("local")
     if f_flags & 0x4000:
-        flags.add('rootfs')
+        flags.add("rootfs")
     if f_flags & 0x4000000:
-        flags.add('automounted')
+        flags.add("automounted")
     return flags
 
 
@@ -244,8 +257,8 @@ def get_filesystems():
 
     libc = ctypes.cdll.LoadLibrary(ctypes.util.find_library("c"))
     # see man GETFSSTAT(2) for struct
-    statfs_32_struct = b'=hh ll ll ll lQ lh hl 2l 15s 90s 90s x 16x'
-    statfs_64_struct = b'=Ll QQ QQ Q ll l LLL 16s 1024s 1024s 32x'
+    statfs_32_struct = b"=hh ll ll ll lQ lh hl 2l 15s 90s 90s x 16x"
+    statfs_64_struct = b"=Ll QQ QQ Q ll l LLL 16s 1024s 1024s 32x"
     os_version = osutils.getOsVersion(as_tuple=True)
     if os_version <= (10, 5):
         mode = 32
@@ -270,7 +283,7 @@ def get_filesystems():
         no_of_structs = libc.getfsstat(ctypes.byref(buf), bufsize, mnt_nowait)
 
     if no_of_structs < 0:
-        display.display_debug1('getfsstat() returned errno %d' % no_of_structs)
+        display.display_debug1("getfsstat() returned errno %d" % no_of_structs)
         return {}
 
     ofs = 0
@@ -279,25 +292,58 @@ def get_filesystems():
     # pylint: disable=unused-variable
     for i in xrange(0, no_of_structs):
         if mode == 64:
-            (f_bsize, f_iosize, f_blocks, f_bfree, f_bavail, f_files,
-             f_ffree, f_fsid_0, f_fsid_1, f_owner, f_type, f_flags,
-             f_fssubtype,
-             f_fstypename, f_mntonname, f_mntfromname) = struct.unpack(
-                 statfs_struct, bytes(buf[ofs:ofs+sizeof_statfs_struct]))
+            (
+                f_bsize,
+                f_iosize,
+                f_blocks,
+                f_bfree,
+                f_bavail,
+                f_files,
+                f_ffree,
+                f_fsid_0,
+                f_fsid_1,
+                f_owner,
+                f_type,
+                f_flags,
+                f_fssubtype,
+                f_fstypename,
+                f_mntonname,
+                f_mntfromname,
+            ) = struct.unpack(
+                statfs_struct, bytes(buf[ofs : ofs + sizeof_statfs_struct])
+            )
         elif mode == 32:
-            (f_otype, f_oflags, f_bsize, f_iosize, f_blocks, f_bfree, f_bavail,
-             f_files, f_ffree, f_fsid, f_owner, f_reserved1, f_type, f_flags,
-             f_reserved2_0, f_reserved2_1, f_fstypename, f_mntonname,
-             f_mntfromname) = struct.unpack(
-                 statfs_struct, bytes(buf[ofs:ofs+sizeof_statfs_struct]))
+            (
+                f_otype,
+                f_oflags,
+                f_bsize,
+                f_iosize,
+                f_blocks,
+                f_bfree,
+                f_bavail,
+                f_files,
+                f_ffree,
+                f_fsid,
+                f_owner,
+                f_reserved1,
+                f_type,
+                f_flags,
+                f_reserved2_0,
+                f_reserved2_1,
+                f_fstypename,
+                f_mntonname,
+                f_mntfromname,
+            ) = struct.unpack(
+                statfs_struct, bytes(buf[ofs : ofs + sizeof_statfs_struct])
+            )
 
         try:
             stat_val = os.stat(_asciiz_to_bytestr(f_mntonname))
             output[stat_val.st_dev] = {
-                'f_flags_set': _f_flags_to_set(f_flags),
-                'f_fstypename': _asciiz_to_bytestr(f_fstypename),
-                'f_mntonname': _asciiz_to_bytestr(f_mntonname),
-                'f_mntfromname': _asciiz_to_bytestr(f_mntfromname),
+                "f_flags_set": _f_flags_to_set(f_flags),
+                "f_fstypename": _asciiz_to_bytestr(f_fstypename),
+                "f_mntonname": _asciiz_to_bytestr(f_mntonname),
+                "f_mntfromname": _asciiz_to_bytestr(f_mntfromname),
             }
         except OSError:
             pass
@@ -309,6 +355,8 @@ def get_filesystems():
 
 
 FILESYSTEMS = {}
+
+
 def is_excluded_filesystem(path, _retry=False):
     """Gets filesystem information for a path and determine if it should be
     excluded from application searches.
@@ -323,7 +371,7 @@ def is_excluded_filesystem(path, _retry=False):
     if not path:
         return None
 
-    path_components = path.split('/')
+    path_components = path.split("/")
     if len(path_components) > 1:
         if path_components[1] in APP_DISCOVERY_EXCLUSION_DIRS:
             return True
@@ -341,21 +389,22 @@ def is_excluded_filesystem(path, _retry=False):
             # perhaps the stat() on the path caused autofs to mount
             # the required filesystem and now it will be available.
             # try one more time to look for it after flushing the cache.
-            display.display_debug1(
-                'Trying isExcludedFilesystem again for %s' % path)
+            display.display_debug1("Trying isExcludedFilesystem again for %s" % path)
             return is_excluded_filesystem(path, True)
         # _retry defined
-        display.display_debug1(
-            'Could not match path %s to a filesystem' % path)
+        display.display_debug1("Could not match path %s to a filesystem" % path)
         return None
 
-    exc_flags = ('read-only' in FILESYSTEMS[stat_val.st_dev]['f_flags_set'] or
-                 'local' not in FILESYSTEMS[stat_val.st_dev]['f_flags_set'])
-    is_nfs = FILESYSTEMS[stat_val.st_dev]['f_fstypename'] == 'nfs'
+    exc_flags = (
+        "read-only" in FILESYSTEMS[stat_val.st_dev]["f_flags_set"]
+        or "local" not in FILESYSTEMS[stat_val.st_dev]["f_flags_set"]
+    )
+    is_nfs = FILESYSTEMS[stat_val.st_dev]["f_fstypename"] == "nfs"
 
     if is_nfs or exc_flags:
         display.display_debug1(
-            'Excluding %s (flags %s, nfs %s)' % (path, exc_flags, is_nfs))
+            "Excluding %s (flags %s, nfs %s)" % (path, exc_flags, is_nfs)
+        )
 
     return is_nfs or exc_flags
 
@@ -368,7 +417,8 @@ def find_apps_in_dirs(dirlist):
     applist = []
     query = NSMetadataQuery.alloc().init()
     query.setPredicate_(
-        NSPredicate.predicateWithFormat_('(kMDItemKind = "Application")'))
+        NSPredicate.predicateWithFormat_('(kMDItemKind = "Application")')
+    )
     query.setSearchScopes_(dirlist)
     query.startQuery()
     # Spotlight isGathering phase - this is the initial search. After the
@@ -379,18 +429,20 @@ def find_apps_in_dirs(dirlist):
     maxruntime = 20
     while query.isGathering() and runtime <= maxruntime:
         runtime += 0.3
-        NSRunLoop.currentRunLoop(
-            ).runUntilDate_(NSDate.dateWithTimeIntervalSinceNow_(0.3))
+        NSRunLoop.currentRunLoop().runUntilDate_(
+            NSDate.dateWithTimeIntervalSinceNow_(0.3)
+        )
     query.stopQuery()
 
     if runtime >= maxruntime:
         display.display_warning(
-            'Spotlight search for applications terminated due to excessive '
-            'time. Possible causes: Spotlight indexing is turned off for a '
-            'volume; Spotlight is reindexing a volume.')
+            "Spotlight search for applications terminated due to excessive "
+            "time. Possible causes: Spotlight indexing is turned off for a "
+            "volume; Spotlight is reindexing a volume."
+        )
 
     for item in query.results():
-        pathname = item.valueForAttribute_('kMDItemPath')
+        pathname = item.valueForAttribute_("kMDItemPath")
         if pathname and not is_excluded_filesystem(pathname):
             applist.append(pathname)
 
@@ -406,25 +458,28 @@ def spotlight_installed_apps():
     dirlist = []
     applist = []
 
-    for filename in osutils.listdir(u'/'):
-        pathname = os.path.join(u'/', filename)
-        if (os.path.isdir(pathname) and not os.path.islink(pathname) and
-                not is_excluded_filesystem(pathname)):
-            if filename.endswith('.app'):
+    for filename in osutils.listdir(u"/"):
+        pathname = os.path.join(u"/", filename)
+        if (
+            os.path.isdir(pathname)
+            and not os.path.islink(pathname)
+            and not is_excluded_filesystem(pathname)
+        ):
+            if filename.endswith(".app"):
                 applist.append(pathname)
             else:
                 dirlist.append(pathname)
 
     # Future code changes may mean we wish to look for Applications
     # installed on any r/w local volume.
-    #for f in osutils.listdir(u'/Volumes'):
+    # for f in osutils.listdir(u'/Volumes'):
     #    p = os.path.join(u'/Volumes', f)
     #    if os.path.isdir(p) and not os.path.islink(p) \
     #                        and not is_excluded_filesystem(p):
     #        dirlist.append(p)
 
     # /Users is not currently excluded, so no need to add /Users/Shared.
-    #dirlist.append(u'/Users/Shared')
+    # dirlist.append(u'/Users/Shared')
 
     applist.extend(find_apps_in_dirs(dirlist))
     return applist
@@ -445,8 +500,11 @@ def launchservices_installed_apps():
     applist = []
     for app in apps:
         app_path = app.path()
-        if (app_path and not is_excluded_filesystem(app_path) and
-                os.path.exists(app_path)):
+        if (
+            app_path
+            and not is_excluded_filesystem(app_path)
+            and os.path.exists(app_path)
+        ):
             applist.append(app_path)
 
     return applist
@@ -454,25 +512,31 @@ def launchservices_installed_apps():
 
 @utils.Memoize
 def sp_application_data():
-    '''Uses system profiler to get application info for this machine'''
-    cmd = ['/usr/sbin/system_profiler', 'SPApplicationsDataType', '-xml']
+    """Uses system profiler to get application info for this machine"""
+    cmd = ["/usr/sbin/system_profiler", "SPApplicationsDataType", "-xml"]
     # uses our internal Popen instead of subprocess's so we can timeout
-    proc = Popen(cmd, shell=False, bufsize=-1,
-                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                 stderr=subprocess.PIPE)
+    proc = Popen(
+        cmd,
+        shell=False,
+        bufsize=-1,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     try:
         output, dummy_error = proc.communicate(timeout=60)
     except TimeoutError:
         display.display_error(
-            'system_profiler hung; skipping SPApplicationsDataType query')
+            "system_profiler hung; skipping SPApplicationsDataType query"
+        )
         # return empty dict
         return {}
     try:
         plist = FoundationPlist.readPlistFromString(output)
         # system_profiler xml is an array
         application_data = {}
-        for item in plist[0]['_items']:
-            application_data[item.get('path')] = item
+        for item in plist[0]["_items"]:
+            application_data[item.get("path")] = item
     except BaseException:
         application_data = {}
     return application_data
@@ -483,22 +547,21 @@ def app_data():
     """Gets info on currently installed apps.
     Returns a list of dicts containing path, name, version and bundleid"""
     application_data = []
-    display.display_debug1(
-        'Getting info on currently installed applications...')
+    display.display_debug1("Getting info on currently installed applications...")
     applist = set(launchservices_installed_apps())
     applist.update(spotlight_installed_apps())
     for pathname in applist:
         iteminfo = {}
-        iteminfo['name'] = os.path.splitext(os.path.basename(pathname))[0]
-        iteminfo['path'] = pathname
-        plistpath = os.path.join(pathname, 'Contents', 'Info.plist')
+        iteminfo["name"] = os.path.splitext(os.path.basename(pathname))[0]
+        iteminfo["path"] = pathname
+        plistpath = os.path.join(pathname, "Contents", "Info.plist")
         if os.path.exists(plistpath):
             try:
                 plist = FoundationPlist.readPlist(plistpath)
-                iteminfo['bundleid'] = plist.get('CFBundleIdentifier', '')
-                if 'CFBundleName' in plist:
-                    iteminfo['name'] = plist['CFBundleName']
-                iteminfo['version'] = pkgutils.getBundleVersion(pathname)
+                iteminfo["bundleid"] = plist.get("CFBundleIdentifier", "")
+                if "CFBundleName" in plist:
+                    iteminfo["name"] = plist["CFBundleName"]
+                iteminfo["version"] = pkgutils.getBundleVersion(pathname)
                 application_data.append(iteminfo)
             except BaseException:
                 pass
@@ -508,21 +571,26 @@ def app_data():
             sp_app_data = sp_application_data()
             if pathname in sp_app_data:
                 item = sp_app_data[pathname]
-                iteminfo['bundleid'] = ''
-                iteminfo['version'] = item.get('version') or '0.0.0.0.0'
-                if item.get('_name'):
-                    iteminfo['name'] = item['_name']
+                iteminfo["bundleid"] = ""
+                iteminfo["version"] = item.get("version") or "0.0.0.0.0"
+                if item.get("_name"):
+                    iteminfo["name"] = item["_name"]
                 application_data.append(iteminfo)
     return application_data
 
 
 @utils.Memoize
 def filtered_app_data():
-    '''Returns a filtered version of app_data, filtering out apps in user
-    home directories for use by compare.compare_application_version()'''
-    return [item for item in app_data()
-            if not (item['path'].startswith('/Users/') and
-                    not item['path'].startswith('/Users/Shared/'))]
+    """Returns a filtered version of app_data, filtering out apps in user
+    home directories for use by compare.compare_application_version()"""
+    return [
+        item
+        for item in app_data()
+        if not (
+            item["path"].startswith("/Users/")
+            and not item["path"].startswith("/Users/Shared/")
+        )
+    ]
 
 
 @utils.Memoize
@@ -540,8 +608,8 @@ def get_version():
             pass
         else:
             try:
-                vers = vers_plist['CFBundleShortVersionString']
-                build = vers_plist['BuildNumber']
+                vers = vers_plist["CFBundleShortVersionString"]
+                build = vers_plist["BuildNumber"]
             except KeyError:
                 pass
     if build:
@@ -550,17 +618,22 @@ def get_version():
 
 
 def get_sp_data(data_type):
-    '''Uses system profiler to get info of data_type for this machine'''
-    cmd = ['/usr/sbin/system_profiler', data_type, '-xml']
-    proc = subprocess.Popen(cmd, shell=False, bufsize=-1,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    """Uses system profiler to get info of data_type for this machine"""
+    cmd = ["/usr/sbin/system_profiler", data_type, "-xml"]
+    proc = subprocess.Popen(
+        cmd,
+        shell=False,
+        bufsize=-1,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     output = proc.communicate()[0]
     try:
         plist = FoundationPlist.readPlistFromString(output)
         # system_profiler xml is an array
         sp_dict = plist[0]
-        items = sp_dict['_items']
+        items = sp_dict["_items"]
         sp_items_dict = items[0]
         return sp_items_dict
     except BaseException:
@@ -568,29 +641,34 @@ def get_sp_data(data_type):
 
 
 def get_hardware_info():
-    '''Uses system profiler to get hardware info for this machine'''
-    return get_sp_data('SPHardwareDataType')
+    """Uses system profiler to get hardware info for this machine"""
+    return get_sp_data("SPHardwareDataType")
 
 
 def get_ibridge_info():
-    '''Uses system profiler to get iBridge info for this machine'''
-    return get_sp_data('SPiBridgeDataType')
+    """Uses system profiler to get iBridge info for this machine"""
+    return get_sp_data("SPiBridgeDataType")
 
 
 def get_ip_addresses(kind):
-    '''Uses system profiler to get active IP addresses for this machine
-    kind must be one of 'IPv4' or 'IPv6' '''
+    """Uses system profiler to get active IP addresses for this machine
+    kind must be one of 'IPv4' or 'IPv6' """
     ip_addresses = []
-    cmd = ['/usr/sbin/system_profiler', 'SPNetworkDataType', '-xml']
-    proc = subprocess.Popen(cmd, shell=False, bufsize=-1,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cmd = ["/usr/sbin/system_profiler", "SPNetworkDataType", "-xml"]
+    proc = subprocess.Popen(
+        cmd,
+        shell=False,
+        bufsize=-1,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     output = proc.communicate()[0]
     try:
         plist = FoundationPlist.readPlistFromString(output)
         # system_profiler xml is an array of length 1
         sp_dict = plist[0]
-        items = sp_dict['_items']
+        items = sp_dict["_items"]
     except BaseException:
         # something is wrong with system_profiler output
         # so bail
@@ -598,7 +676,7 @@ def get_ip_addresses(kind):
 
     for item in items:
         try:
-            ip_addresses.extend(item[kind]['Addresses'])
+            ip_addresses.extend(item[kind]["Addresses"])
         except KeyError:
             # 'IPv4", 'IPv6' or 'Addresses' is empty, so we ignore
             # this item
@@ -641,11 +719,9 @@ def hardware_model():
     buf = ctypes.c_int()
     size.value = ctypes.sizeof(buf)
 
-    libc.sysctlbyname(
-        b"hw.model", None, ctypes.byref(size), None, 0)
+    libc.sysctlbyname(b"hw.model", None, ctypes.byref(size), None, 0)
     buf = ctypes.create_string_buffer(size.value)
-    libc.sysctlbyname(
-        b"hw.model", ctypes.byref(buf), ctypes.byref(size), None, 0)
+    libc.sysctlbyname(b"hw.model", ctypes.byref(buf), ctypes.byref(size), None, 0)
     return buf.value.decode("utf-8")
 
 
@@ -658,12 +734,13 @@ def has_intel64support():
     size.value = ctypes.sizeof(buf)
 
     libc.sysctlbyname(
-        b"hw.optional.x86_64", ctypes.byref(buf), ctypes.byref(size), None, 0)
+        b"hw.optional.x86_64", ctypes.byref(buf), ctypes.byref(size), None, 0
+    )
 
     return buf.value == 1
 
 
-def available_disk_space(volumepath='/'):
+def available_disk_space(volumepath="/"):
     """Returns available diskspace in KBytes.
 
     Args:
@@ -672,25 +749,29 @@ def available_disk_space(volumepath='/'):
       int, KBytes in free space available
     """
     if volumepath is None:
-        volumepath = '/'
+        volumepath = "/"
     try:
         stat_val = os.statvfs(volumepath)
     except OSError as err:
         display.display_error(
-            'Error getting disk space in %s: %s', volumepath, str(err))
+            "Error getting disk space in %s: %s", volumepath, str(err)
+        )
         return 0
-     # f_bavail matches df(1) output
-    return int(stat_val.f_frsize * stat_val.f_bavail / 1024) # pylint: disable=old-division
+    # f_bavail matches df(1) output
+    return int(
+        stat_val.f_frsize * stat_val.f_bavail / 1024
+    )  # pylint: disable=old-division
 
 
 def get_os_build():
-    '''Returns the OS Build "number" (example 16G1212).'''
+    """Returns the OS Build "number" (example 16G1212)."""
     try:
         system_version_plist = FoundationPlist.readPlist(
-            '/System/Library/CoreServices/SystemVersion.plist')
-        return system_version_plist['ProductBuildVersion']
+            "/System/Library/CoreServices/SystemVersion.plist"
+        )
+        return system_version_plist["ProductBuildVersion"]
     except (FoundationPlist.FoundationPlistException, KeyError, AttributeError):
-        return ''
+        return ""
 
 
 @utils.Memoize
@@ -699,38 +780,39 @@ def getMachineFacts():
     installer is applicable to this OS or hardware"""
     # pylint: disable=C0103
     machine = dict()
-    machine['hostname'] = unicode_or_str(os.uname()[1])
+    machine["hostname"] = unicode_or_str(os.uname()[1])
     arch = os.uname()[4]
-    if arch == 'x86_64':
+    if arch == "x86_64":
         # we might be natively Intel64, or running under Rosetta.
         # os.uname()[4] returns the current execution arch, which under Rosetta
         # will be x86_64. Since what we want here is the _native_ arch, we're
         # going to use a hack for now to see if we're natively arm64
         uname_version = os.uname()[3]
-        if 'ARM64' in uname_version:
-            arch = 'arm64'
-    machine['arch'] = arch
-    machine['os_vers'] = osutils.getOsVersion(only_major_minor=False)
-    machine['os_build_number'] = get_os_build()
-    machine['machine_model'] = hardware_model() or 'UNKNOWN'
-    machine['munki_version'] = get_version()
-    machine['ipv4_address'] = get_ip_addresses('IPv4')
-    machine['ipv6_address'] = get_ip_addresses('IPv6')
-    machine['serial_number'] = get_serial_number() or 'UNKNOWN'
+        if "ARM64" in uname_version:
+            arch = "arm64"
+    machine["arch"] = arch
+    machine["os_vers"] = osutils.getOsVersion(only_major_minor=False)
+    machine["os_build_number"] = get_os_build()
+    machine["machine_model"] = hardware_model() or "UNKNOWN"
+    machine["munki_version"] = get_version()
+    machine["ipv4_address"] = get_ip_addresses("IPv4")
+    machine["ipv6_address"] = get_ip_addresses("IPv6")
+    machine["serial_number"] = get_serial_number() or "UNKNOWN"
     ibridge_info = get_ibridge_info()
-    machine['ibridge_model_name'] = ibridge_info.get(
-        'ibridge_model_name', 'NO IBRIDGE CHIP')
-    if machine['arch'] == 'x86_64':
-        machine['x86_64_capable'] = True
-    elif machine['arch'] == 'i386':
-        machine['x86_64_capable'] = has_intel64support()
+    machine["ibridge_model_name"] = ibridge_info.get(
+        "ibridge_model_name", "NO IBRIDGE CHIP"
+    )
+    if machine["arch"] == "x86_64":
+        machine["x86_64_capable"] = True
+    elif machine["arch"] == "i386":
+        machine["x86_64_capable"] = has_intel64support()
     return machine
 
 
 def valid_plist(path):
     """Uses plutil to determine if path contains a valid plist.
     Returns True or False."""
-    retcode = subprocess.call(['/usr/bin/plutil', '-lint', '-s', path])
+    retcode = subprocess.call(["/usr/bin/plutil", "-lint", "-s", path])
     return retcode == 0
 
 
@@ -744,7 +826,8 @@ def get_conditions():
     conditionalscriptdir = os.path.join(scriptdir, "conditions")
     # define path to ConditionalItems.plist
     conditionalitemspath = os.path.join(
-        prefs.pref('ManagedInstallDir'), 'ConditionalItems.plist')
+        prefs.pref("ManagedInstallDir"), "ConditionalItems.plist"
+    )
     try:
         # delete CondtionalItems.plist so that we're starting fresh
         os.unlink(conditionalitemspath)
@@ -752,18 +835,20 @@ def get_conditions():
         pass
     if os.path.exists(conditionalscriptdir):
         for conditionalscript in sorted(osutils.listdir(conditionalscriptdir)):
-            if conditionalscript.startswith('.'):
+            if conditionalscript.startswith("."):
                 # skip files that start with a period
                 continue
             conditionalscriptpath = os.path.join(
-                conditionalscriptdir, conditionalscript)
+                conditionalscriptdir, conditionalscript
+            )
             if os.path.isdir(conditionalscriptpath):
                 # skip directories in conditions directory
                 continue
             try:
                 # attempt to execute condition script
-                dummy_result, dummy_stdout, dummy_stderr = (
-                    utils.runExternalScript(conditionalscriptpath))
+                dummy_result, dummy_stdout, dummy_stderr = utils.runExternalScript(
+                    conditionalscriptpath
+                )
             except utils.ScriptNotFoundError:
                 pass  # script is not required, so pass
             except utils.RunExternalScriptError as err:
@@ -771,8 +856,7 @@ def get_conditions():
     else:
         # /usr/local/munki/conditions does not exist
         pass
-    if (os.path.exists(conditionalitemspath) and
-            valid_plist(conditionalitemspath)):
+    if os.path.exists(conditionalitemspath) and valid_plist(conditionalitemspath):
         # import conditions into conditions dict
         conditions = FoundationPlist.readPlist(conditionalitemspath)
         os.unlink(conditionalitemspath)
@@ -787,26 +871,26 @@ def saveappdata():
     """Save installed application data"""
     # data from app_data() is meant for use by updatecheck
     # we need to massage it a bit for more general usage
-    munkilog.log('Saving application inventory...')
+    munkilog.log("Saving application inventory...")
     app_inventory = []
     for item in app_data():
         inventory_item = {}
-        inventory_item['CFBundleName'] = item.get('name')
-        inventory_item['bundleid'] = item.get('bundleid')
-        inventory_item['version'] = item.get('version')
-        inventory_item['path'] = item.get('path', '')
+        inventory_item["CFBundleName"] = item.get("name")
+        inventory_item["bundleid"] = item.get("bundleid")
+        inventory_item["version"] = item.get("version")
+        inventory_item["path"] = item.get("path", "")
         # use last path item (minus '.app' if present) as name
-        inventory_item['name'] = \
-            os.path.splitext(os.path.basename(inventory_item['path']))[0]
+        inventory_item["name"] = os.path.splitext(
+            os.path.basename(inventory_item["path"])
+        )[0]
         app_inventory.append(inventory_item)
     try:
         FoundationPlist.writePlist(
             app_inventory,
-            os.path.join(
-                prefs.pref('ManagedInstallDir'), 'ApplicationInventory.plist'))
+            os.path.join(prefs.pref("ManagedInstallDir"), "ApplicationInventory.plist"),
+        )
     except FoundationPlist.NSPropertyListSerializationException as err:
-        display.display_warning(
-            'Unable to save inventory report: %s' % err)
+        display.display_warning("Unable to save inventory report: %s" % err)
 
 
 # conditional/predicate info functions
@@ -825,8 +909,7 @@ def subtract_tzoffset_from_date(the_date):
     timezone = NSTimeZone.defaultTimeZone()
     seconds_offset = timezone.secondsFromGMTForDate_(the_date)
     # return new NSDate minus local_offset
-    return NSDate.alloc(
-        ).initWithTimeInterval_sinceDate_(-seconds_offset, the_date)
+    return NSDate.alloc().initWithTimeInterval_sinceDate_(-seconds_offset, the_date)
 
 
 def add_tzoffset_to_date(the_date):
@@ -845,13 +928,12 @@ def add_tzoffset_to_date(the_date):
     timezone = NSTimeZone.defaultTimeZone()
     seconds_offset = timezone.secondsFromGMTForDate_(the_date)
     # return new NSDate minus local_offset
-    return NSDate.alloc(
-        ).initWithTimeInterval_sinceDate_(seconds_offset, the_date)
+    return NSDate.alloc().initWithTimeInterval_sinceDate_(seconds_offset, the_date)
 
 
 @utils.Memoize
 def predicate_info_object():
-    '''Returns our info object used for predicate comparisons'''
+    """Returns our info object used for predicate comparisons"""
     info_object = {}
     machine = getMachineFacts()
     info_object.update(machine)
@@ -859,43 +941,44 @@ def predicate_info_object():
     # use our start time for "current" date (if we have it)
     # and add the timezone offset to it so we can compare
     # UTC dates as though they were local dates.
-    info_object['date'] = add_tzoffset_to_date(
-        NSDate.dateWithString_(
-            reports.report.get('StartTime', reports.format_time())))
+    info_object["date"] = add_tzoffset_to_date(
+        NSDate.dateWithString_(reports.report.get("StartTime", reports.format_time()))
+    )
     # split os version into components for easier predicate comparison
-    os_vers = machine['os_vers']
-    os_vers = os_vers + '.0.0'
-    info_object['os_vers_major'] = int(os_vers.split('.')[0])
-    info_object['os_vers_minor'] = int(os_vers.split('.')[1])
-    info_object['os_vers_patch'] = int(os_vers.split('.')[2])
+    os_vers = machine["os_vers"]
+    os_vers = os_vers + ".0.0"
+    info_object["os_vers_major"] = int(os_vers.split(".")[0])
+    info_object["os_vers_minor"] = int(os_vers.split(".")[1])
+    info_object["os_vers_patch"] = int(os_vers.split(".")[2])
     # get last build number component for easier predicate comparison
-    build = machine['os_build_number']
-    info_object['os_build_last_component'] = pkgutils.MunkiLooseVersion(
-        build).version[-1]
-    if 'Book' in machine.get('machine_model', ''):
-        info_object['machine_type'] = 'laptop'
+    build = machine["os_build_number"]
+    info_object["os_build_last_component"] = pkgutils.MunkiLooseVersion(build).version[
+        -1
+    ]
+    if "Book" in machine.get("machine_model", ""):
+        info_object["machine_type"] = "laptop"
     else:
-        info_object['machine_type'] = 'desktop'
+        info_object["machine_type"] = "desktop"
     return info_object
 
 
 def predicate_evaluates_as_true(predicate_string, additional_info=None):
-    '''Evaluates predicate against our info object'''
-    display.display_debug1('Evaluating predicate: %s', predicate_string)
+    """Evaluates predicate against our info object"""
+    display.display_debug1("Evaluating predicate: %s", predicate_string)
     info_object = predicate_info_object()
     if isinstance(additional_info, dict):
         info_object.update(additional_info)
     try:
         predicate = NSPredicate.predicateWithFormat_(predicate_string)
     except BaseException as err:
-        display.display_warning('%s', err)
+        display.display_warning("%s", err)
         # can't parse predicate, so return False
         return False
 
     result = predicate.evaluateWithObject_(info_object)
-    display.display_debug1('Predicate %s is %s', predicate_string, result)
+    display.display_debug1("Predicate %s is %s", predicate_string, result)
     return result
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

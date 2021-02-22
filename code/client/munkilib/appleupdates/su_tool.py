@@ -46,32 +46,29 @@ def find_ptty_tool():
     # first look in the parent directory of the parent directory of this
     # file's directory
     # (../)
-    parent_dir = (
-        os.path.dirname(
-            os.path.dirname(
-                os.path.dirname(
-                    os.path.abspath(__file__)))))
-    ptyexec_path = os.path.join(parent_dir, 'ptyexec')
+    parent_dir = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
+    ptyexec_path = os.path.join(parent_dir, "ptyexec")
     if not os.path.exists(ptyexec_path):
         # try absolute path in munki's normal install dir
-        ptyexec_path = '/usr/local/munki/ptyexec'
+        ptyexec_path = "/usr/local/munki/ptyexec"
     if os.path.exists(ptyexec_path):
         cmd = [ptyexec_path]
     else:
         # fall back to /usr/bin/script
         # this is not preferred because it uses way too much CPU
         # checking stdin for input that will never come...
-        cmd = ['/usr/bin/script', '-q', '-t', '1', '/dev/null']
-        display.display_warning(
-            'Using /usr/bin/script as a ptty; CPU load may suffer')
+        cmd = ["/usr/bin/script", "-q", "-t", "1", "/dev/null"]
+        display.display_warning("Using /usr/bin/script as a ptty; CPU load may suffer")
     return cmd
 
 
 def parse_su_update_line_new_style(line):
-    '''Parses a new-style software update line'''
+    """Parses a new-style software update line"""
     info = {}
-    line = line.strip().rstrip(',')
-    for subitem in line.split(', '):
+    line = line.strip().rstrip(",")
+    for subitem in line.split(", "):
         key, _, value = subitem.partition(": ")
         if key:
             info[key] = value
@@ -79,8 +76,8 @@ def parse_su_update_line_new_style(line):
 
 
 def parse_su_update_line_old_style(line):
-    '''Parses an old-style (pre-10.15) softwareupdate -l output line
-    into a dict'''
+    """Parses an old-style (pre-10.15) softwareupdate -l output line
+    into a dict"""
     info = {}
     # strip leading and trailing whitespace
     line = line.strip()
@@ -88,53 +85,51 @@ def parse_su_update_line_old_style(line):
     if not seperator == "(":
         # no idea of the format, just return an empty dict
         return {}
-    info['Title'] = title.rstrip()
+    info["Title"] = title.rstrip()
     version, seperator, line = line.partition(")")
     if not seperator == ")":
         # no idea of the format, just return an empty dict
         return {}
-    info['Version'] = version
-    line = line.lstrip(', ')
-    size, seperator, line = line.partition('K')
-    if seperator == 'K':
-        info['Size'] = '%sK' % size
+    info["Version"] = version
+    line = line.lstrip(", ")
+    size, seperator, line = line.partition("K")
+    if seperator == "K":
+        info["Size"] = "%sK" % size
     # now start from the end
     if line.endswith(" [restart]"):
-        line = line[0:-len(" [restart]")]
-        info['Action'] = 'restart'
+        line = line[0 : -len(" [restart]")]
+        info["Action"] = "restart"
     if line.endswith(" [recommended]"):
-        line = line[0:-len(" [recommended]")]
-        info['Recommended'] = 'YES'
+        line = line[0 : -len(" [recommended]")]
+        info["Recommended"] = "YES"
     else:
-        info['Recommended'] = 'NO'
+        info["Recommended"] = "NO"
     return info
 
 
 def parse_su_identifier(line):
-    '''parses first line of softwareupdate -l item output'''
-    if line.startswith('   * '):
+    """parses first line of softwareupdate -l item output"""
+    if line.startswith("   * "):
         update_entry = line[5:]
-    elif line.startswith('* Label: '):
+    elif line.startswith("* Label: "):
         update_entry = line[9:]
     else:
         return {}
-    update_parts = update_entry.split('-')
+    update_parts = update_entry.split("-")
     # version is the bit after the last hyphen
     # (let's hope there are no hyphens in the versions!)
     vers = update_parts[-1]
     # identifier is everything before the last hyphen
-    identifier = '-'.join(update_parts[0:-1])
-    return {'full_identifier': update_entry,
-            'identifier': identifier,
-            'version': vers}
+    identifier = "-".join(update_parts[0:-1])
+    return {"full_identifier": update_entry, "identifier": identifier, "version": vers}
 
 
 def parse_su_update_lines(line1, line2):
-    '''Parses two lines from softwareupdate -l output and returns a dict'''
+    """Parses two lines from softwareupdate -l output and returns a dict"""
     info = parse_su_identifier(line1)
-    if line1.startswith('   * '):
+    if line1.startswith("   * "):
         info.update(parse_su_update_line_old_style(line2))
-    elif line1.startswith('* Label: '):
+    elif line1.startswith("* Label: "):
         info.update(parse_su_update_line_new_style(line2))
     return info
 
@@ -159,7 +154,7 @@ def run(options_list, catalog_url=None, stop_allowed=False):
     countdown_timer = 60
 
     cmd = find_ptty_tool()
-    cmd.extend(['/usr/sbin/softwareupdate', '--verbose'])
+    cmd.extend(["/usr/sbin/softwareupdate", "--verbose"])
 
     os_version_tuple = osutils.getOsVersion(as_tuple=True)
     if catalog_url and os_version_tuple == (10, 10):
@@ -169,31 +164,31 @@ def run(options_list, catalog_url=None, stop_allowed=False):
     cmd.extend(options_list)
     # figure out the softwareupdate 'mode'
     mode = None
-    if '-l' in options_list or '--list' in options_list:
-        mode = 'list'
-    elif '-d' in options_list or '--download' in options_list:
-        mode = 'download'
-    elif '-i' in options_list or '--install' in options_list:
-        mode = 'install'
+    if "-l" in options_list or "--list" in options_list:
+        mode = "list"
+    elif "-d" in options_list or "--download" in options_list:
+        mode = "download"
+    elif "-i" in options_list or "--install" in options_list:
+        mode = "install"
 
-    display.display_debug1('softwareupdate cmd: %s', cmd)
+    display.display_debug1("softwareupdate cmd: %s", cmd)
 
-    results['installed'] = []
-    results['download'] = []
-    results['failures'] = []
-    results['updates'] = []
-    results['exit_code'] = 0
-    results['post_action'] = POSTACTION_NONE
+    results["installed"] = []
+    results["download"] = []
+    results["failures"] = []
+    results["updates"] = []
+    results["exit_code"] = 0
+    results["post_action"] = POSTACTION_NONE
 
     try:
         job = launchd.Job(cmd)
         job.start()
     except launchd.LaunchdJobException as err:
-        message = 'Error with launchd job (%s): %s' % (cmd, err)
+        message = "Error with launchd job (%s): %s" % (cmd, err)
         display.display_warning(message)
-        display.display_warning('Skipping softwareupdate run.')
-        results['exit_code'] = -3
-        results['failures'].append(message)
+        display.display_warning("Skipping softwareupdate run.")
+        results["exit_code"] = -3
+        results["failures"].append(message)
         return results
 
     last_output = None
@@ -216,7 +211,8 @@ def run(options_list, catalog_url=None, stop_allowed=False):
                         # just stop the job and move on.
                         # Works around yet another softwareupdate bug.
                         display.display_warning(
-                            'softwareupdate failed to exit: killing it')
+                            "softwareupdate failed to exit: killing it"
+                        )
                         job.stop()
                         break
                 # sleep a bit before checking for more output
@@ -233,28 +229,28 @@ def run(options_list, catalog_url=None, stop_allowed=False):
 
         # do NOT strip leading or trailing spaces yet; we need them when
         # parsing -l/--list output
-        output = output.decode('UTF-8').rstrip('\n\r')
+        output = output.decode("UTF-8").rstrip("\n\r")
 
         # parse and record info, or send the output to STDOUT or MunkiStatus
         # as applicable
 
         # --list-specific output
-        if mode == 'list':
-            if output.startswith(('   * ', '* Label: ')):
+        if mode == "list":
+            if output.startswith(("   * ", "* Label: ")):
                 # collect list of items available for install
                 first_line = output
                 second_line = job.stdout.readline()
                 if second_line:
-                    second_line = second_line.decode('UTF-8').rstrip('\n\r')
+                    second_line = second_line.decode("UTF-8").rstrip("\n\r")
                     item = parse_su_update_lines(first_line, second_line)
-                    results['updates'].append(item)
+                    results["updates"].append(item)
             # we don't want any output from calling `softwareupdate -l`
             continue
 
         output = output.strip()
         # --download-specific output
-        if mode == 'download':
-            if output.startswith('Installed '):
+        if mode == "download":
+            if output.startswith("Installed "):
                 # 10.6/10.7/10.8(+?). Successful download of package name.
                 # don't display.
                 # softwareupdate logging "Installed" at the end of a
@@ -262,58 +258,60 @@ def run(options_list, catalog_url=None, stop_allowed=False):
                 continue
 
         # --install-specific output
-        if mode == 'install':
-            if output.startswith('Installing '):
+        if mode == "install":
+            if output.startswith("Installing "):
                 item = output[11:]
                 if item:
                     display.display_status_major(output)
                 continue
-            if output.startswith('Downloaded '):
+            if output.startswith("Downloaded "):
                 # don't display this
                 continue
-            if output.startswith('Done with '):
+            if output.startswith("Done with "):
                 # 10.9 successful install
                 display.display_status_minor(output)
-                results['installed'].append(output[10:])
+                results["installed"].append(output[10:])
                 continue
-            if output.startswith('Downloading '):
+            if output.startswith("Downloading "):
                 # This is 10.5 & 10.7 behavior for a missing subpackage.
                 display.display_warning(
-                    'A necessary subpackage is not available on disk '
-                    'during an Apple Software Update installation '
-                    'run: %s' % output)
-                results['download'].append(output[12:])
+                    "A necessary subpackage is not available on disk "
+                    "during an Apple Software Update installation "
+                    "run: %s" % output
+                )
+                results["download"].append(output[12:])
                 continue
-            if output.startswith('Installed '):
+            if output.startswith("Installed "):
                 # 10.6/10.7/10.8(+?) Successful install of package name.
                 display.display_status_minor(output)
-                results['installed'].append(output[10:])
+                results["installed"].append(output[10:])
                 continue
-            if output.startswith('Done '):
+            if output.startswith("Done "):
                 # 10.5. Successful install of package name.
                 display.display_status_minor(output)
-                results['installed'].append(output[5:])
+                results["installed"].append(output[5:])
                 continue
-            if output.startswith('Package failed:'):
+            if output.startswith("Package failed:"):
                 # Doesn't tell us which package.
-                display.display_error(
-                    'Apple update failed to install: %s' % output)
-                results['failures'].append(output)
+                display.display_error("Apple update failed to install: %s" % output)
+                results["failures"].append(output)
                 continue
-            if (('Please call halt' in output
-                 or 'your computer must shut down' in output)
-                    and results['post_action'] != POSTACTION_SHUTDOWN):
+            if (
+                "Please call halt" in output or "your computer must shut down" in output
+            ) and results["post_action"] != POSTACTION_SHUTDOWN:
                 # This update requires we shutdown instead of a restart.
                 display.display_status_minor(output)
-                display.display_info('### This update requires a shutdown. ###')
-                results['post_action'] = POSTACTION_SHUTDOWN
+                display.display_info("### This update requires a shutdown. ###")
+                results["post_action"] = POSTACTION_SHUTDOWN
                 seems_to_be_finished = True
                 continue
-            if ('requires that you restart your computer' in output
-                    and results['post_action'] == POSTACTION_NONE):
+            if (
+                "requires that you restart your computer" in output
+                and results["post_action"] == POSTACTION_NONE
+            ):
                 # a restart is required
                 display.display_status_minor(output)
-                results['post_action'] = POSTACTION_RESTART
+                results["post_action"] = POSTACTION_RESTART
                 seems_to_be_finished = True
                 continue
             if output == "Done.":
@@ -322,33 +320,32 @@ def run(options_list, catalog_url=None, stop_allowed=False):
                 continue
 
         # other output
-        if output.lower().startswith(
-                ('progress: ', 'downloading: ', 'preparing: ')):
+        if output.lower().startswith(("progress: ", "downloading: ", "preparing: ")):
             # Snow Leopard/Lion progress info with '-v' flag
             # Big Sur has 'downloading/Downloading' percent-done
             try:
-                percent = int(float(output.partition(": ")[2].rstrip('%')))
+                percent = int(float(output.partition(": ")[2].rstrip("%")))
             except ValueError:
                 percent = -1
             display.display_percent_done(percent, 100)
-            if output.startswith('downloading: '):
-                display.display_status_minor('Downloading...')
-            if output.startswith('downloading: '):
-                display.display_status_minor('Preparing...')
+            if output.startswith("downloading: "):
+                display.display_status_minor("Downloading...")
+            if output.startswith("downloading: "):
+                display.display_status_minor("Preparing...")
             continue
-        if output.startswith('Software Update Tool'):
+        if output.startswith("Software Update Tool"):
             # don't display this
             continue
-        if output.startswith('Copyright 2'):
+        if output.startswith("Copyright 2"):
             # don't display this
             continue
-        if output.startswith('x '):
+        if output.startswith("x "):
             # don't display this, it's just confusing
             continue
-        if 'Missing bundle identifier' in output:
+        if "Missing bundle identifier" in output:
             # don't display this, it's noise
             continue
-        if output == '':
+        if output == "":
             continue
         else:
             display.display_status_minor(output)
@@ -360,15 +357,14 @@ def run(options_list, catalog_url=None, stop_allowed=False):
     retcode = job.returncode()
     if retcode == 0:
         # get SoftwareUpdate's LastResultCode
-        last_result_code = su_prefs.pref(
-            'LastResultCode') or 0
+        last_result_code = su_prefs.pref("LastResultCode") or 0
         if last_result_code > 2:
             retcode = last_result_code
 
-        if results['failures']:
+        if results["failures"]:
             retcode = 1
 
-    results['exit_code'] = retcode
+    results["exit_code"] = retcode
 
-    display.display_debug2('softwareupdate run results: %s', results)
+    display.display_debug2("softwareupdate run results: %s", results)
     return results

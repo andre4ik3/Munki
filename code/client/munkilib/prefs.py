@@ -38,6 +38,7 @@ from Foundation import kCFPreferencesAnyUser
 from Foundation import kCFPreferencesAnyHost
 from Foundation import kCFPreferencesCurrentUser
 from Foundation import kCFPreferencesCurrentHost
+
 # pylint: enable=E0611
 
 from .constants import BUNDLE_ID
@@ -47,55 +48,55 @@ from .wrappers import is_a_string
 # managed installs preferences/metadata
 #####################################################
 
-DEFAULT_INSECURE_REPO_URL = 'http://munki/repo'
+DEFAULT_INSECURE_REPO_URL = "http://munki/repo"
 
 DEFAULT_PREFS = {
-    'AdditionalHttpHeaders': None,
-    'AggressiveUpdateNotificationDays': 14,
-    'AppleSoftwareUpdatesOnly': False,
-    'CatalogURL': None,
-    'ClientCertificatePath': None,
-    'ClientIdentifier': '',
-    'ClientKeyPath': None,
-    'ClientResourcesFilename': None,
-    'ClientResourceURL': None,
-    'DaysBetweenNotifications': 1,
-    'EmulateProfileSupport': False,
-    'FollowHTTPRedirects': 'none',
-    'HelpURL': None,
-    'IconURL': None,
-    'IgnoreSystemProxies': False,
-    'InstallRequiresLogout': False,
-    'InstallAppleSoftwareUpdates': False,
-    'LastNotifiedDate': NSDate.dateWithTimeIntervalSince1970_(0),
-    'LocalOnlyManifest': None,
-    'LogFile': '/Library/Managed Installs/Logs/ManagedSoftwareUpdate.log',
-    'LoggingLevel': 1,
-    'LogToSyslog': False,
-    'ManagedInstallDir': '/Library/Managed Installs',
-    'ManifestURL': None,
-    'PackageURL': None,
-    'PackageVerificationMode': 'hash',
-    'PerformAuthRestarts': False,
-    'RecoveryKeyFile': None,
-    'ShowOptionalInstallsForHigherOSVersions': False,
-    'SoftwareRepoCACertificate': None,
-    'SoftwareRepoCAPath': None,
-    'SoftwareRepoURL': DEFAULT_INSECURE_REPO_URL,
-    'SoftwareUpdateServerURL': None,
-    'SuppressAutoInstall': False,
-    'SuppressLoginwindowInstall': False,
-    'SuppressStopButtonOnInstall': False,
-    'SuppressUserNotification': False,
-    'UnattendedAppleUpdates': False,
-    'UseClientCertificate': False,
-    'UseClientCertificateCNAsClientIdentifier': False,
-    'UseNotificationCenterDays': 3,
+    "AdditionalHttpHeaders": None,
+    "AggressiveUpdateNotificationDays": 14,
+    "AppleSoftwareUpdatesOnly": False,
+    "CatalogURL": None,
+    "ClientCertificatePath": None,
+    "ClientIdentifier": "",
+    "ClientKeyPath": None,
+    "ClientResourcesFilename": None,
+    "ClientResourceURL": None,
+    "DaysBetweenNotifications": 1,
+    "EmulateProfileSupport": False,
+    "FollowHTTPRedirects": "none",
+    "HelpURL": None,
+    "IconURL": None,
+    "IgnoreSystemProxies": False,
+    "InstallRequiresLogout": False,
+    "InstallAppleSoftwareUpdates": False,
+    "LastNotifiedDate": NSDate.dateWithTimeIntervalSince1970_(0),
+    "LocalOnlyManifest": None,
+    "LogFile": "/Library/Managed Installs/Logs/ManagedSoftwareUpdate.log",
+    "LoggingLevel": 1,
+    "LogToSyslog": False,
+    "ManagedInstallDir": "/Library/Managed Installs",
+    "ManifestURL": None,
+    "PackageURL": None,
+    "PackageVerificationMode": "hash",
+    "PerformAuthRestarts": False,
+    "RecoveryKeyFile": None,
+    "ShowOptionalInstallsForHigherOSVersions": False,
+    "SoftwareRepoCACertificate": None,
+    "SoftwareRepoCAPath": None,
+    "SoftwareRepoURL": DEFAULT_INSECURE_REPO_URL,
+    "SoftwareUpdateServerURL": None,
+    "SuppressAutoInstall": False,
+    "SuppressLoginwindowInstall": False,
+    "SuppressStopButtonOnInstall": False,
+    "SuppressUserNotification": False,
+    "UnattendedAppleUpdates": False,
+    "UseClientCertificate": False,
+    "UseClientCertificateCNAsClientIdentifier": False,
+    "UseNotificationCenterDays": 3,
 }
 
 FORCE_FALSE_ON_APPLE_SILICON = (
-    'AppleSoftwareUpdatesOnly',
-    'InstallAppleSoftwareUpdates',
+    "AppleSoftwareUpdatesOnly",
+    "InstallAppleSoftwareUpdates",
 )
 
 
@@ -108,7 +109,7 @@ class Preferences(object):
         Args:
             bundle_id: str, like 'ManagedInstalls'
         """
-        if bundle_id.endswith('.plist'):
+        if bundle_id.endswith(".plist"):
             bundle_id = bundle_id[:-6]
         self.bundle_id = bundle_id
         self.user = user
@@ -118,7 +119,8 @@ class Preferences(object):
         will fail to iterate all available keys for the preferences domain
         since OS X reads from multiple 'levels' and composites them."""
         keys = CFPreferencesCopyKeyList(
-            self.bundle_id, self.user, kCFPreferencesCurrentHost)
+            self.bundle_id, self.user, kCFPreferencesCurrentHost
+        )
         if keys is not None:
             for i in keys:
                 yield i
@@ -138,8 +140,8 @@ class Preferences(object):
         preference actually gets written at the 'ByHost' level due to the use
         of kCFPreferencesCurrentHost"""
         CFPreferencesSetValue(
-            pref_name, pref_value, self.bundle_id, self.user,
-            kCFPreferencesCurrentHost)
+            pref_name, pref_value, self.bundle_id, self.user, kCFPreferencesCurrentHost
+        )
         CFPreferencesAppSynchronize(self.bundle_id)
 
     def __delitem__(self, pref_name):
@@ -148,7 +150,7 @@ class Preferences(object):
 
     def __repr__(self):
         """Return a text representation of the class"""
-        return '<%s %s>' % (self.__class__.__name__, self.bundle_id)
+        return "<%s %s>" % (self.__class__.__name__, self.bundle_id)
 
     def get(self, pref_name, default=None):
         """Return a preference or the default value"""
@@ -166,9 +168,10 @@ class ManagedInstallsPreferences(Preferences):
     Preferences are written to
         /Library/Preferences/ManagedInstalls.plist
     Since this code is usually run as root, ~ is root's home dir"""
+
     # pylint: disable=too-few-public-methods
     def __init__(self):
-        Preferences.__init__(self, 'ManagedInstalls', kCFPreferencesAnyUser)
+        Preferences.__init__(self, "ManagedInstalls", kCFPreferencesAnyUser)
 
 
 class SecureManagedInstallsPreferences(Preferences):
@@ -180,23 +183,24 @@ class SecureManagedInstallsPreferences(Preferences):
     Preferences are written to
         ~/Library/Preferences/ByHost/ManagedInstalls.XXXX.plist
     Since this code is usually run as root, ~ is root's home dir"""
+
     # pylint: disable=too-few-public-methods
     def __init__(self):
-        Preferences.__init__(self, 'ManagedInstalls', kCFPreferencesCurrentUser)
+        Preferences.__init__(self, "ManagedInstalls", kCFPreferencesCurrentUser)
 
 
 def is_apple_silicon():
     """Returns True if we're running on Apple Silicon"""
     arch = os.uname()[4]
-    if arch == 'x86_64':
+    if arch == "x86_64":
         # we might be natively Intel64, or running under Rosetta.
         # os.uname()[4] returns the current execution arch, which under Rosetta
         # will be x86_64. Since what we want here is the _native_ arch, we're
         # going to use a hack for now to see if we're natively arm64
         uname_version = os.uname()[3]
-        if 'ARM64' in uname_version:
-            arch = 'arm64'
-    return arch == 'arm64'
+        if "ARM64" in uname_version:
+            arch = "arm64"
+    return arch == "arm64"
 
 
 def reload_prefs():
@@ -215,8 +219,12 @@ def set_pref(pref_name, pref_value):
     elsewhere (by MCX, for example)"""
     try:
         CFPreferencesSetValue(
-            pref_name, pref_value, BUNDLE_ID,
-            kCFPreferencesAnyUser, kCFPreferencesCurrentHost)
+            pref_name,
+            pref_value,
+            BUNDLE_ID,
+            kCFPreferencesAnyUser,
+            kCFPreferencesCurrentHost,
+        )
         CFPreferencesAppSynchronize(BUNDLE_ID)
     except BaseException:
         pass
@@ -249,61 +257,68 @@ def pref(pref_name):
 
 
 def get_config_level(domain, pref_name, value):
-    '''Returns a string indicating where the given preference is defined'''
+    """Returns a string indicating where the given preference is defined"""
     if value is None:
-        return '[not set]'
+        return "[not set]"
     if CFPreferencesAppValueIsForced(pref_name, domain):
-        return '[MANAGED]'
+        return "[MANAGED]"
     # define all the places we need to search, in priority order
     levels = [
-        {'file': ('/var/root/Library/Preferences/ByHost/'
-                  '%s.xxxx.plist' % domain),
-         'domain': domain,
-         'user': kCFPreferencesCurrentUser,
-         'host': kCFPreferencesCurrentHost
+        {
+            "file": ("/var/root/Library/Preferences/ByHost/" "%s.xxxx.plist" % domain),
+            "domain": domain,
+            "user": kCFPreferencesCurrentUser,
+            "host": kCFPreferencesCurrentHost,
         },
-        {'file': '/var/root/Library/Preferences/%s.plist' % domain,
-         'domain': domain,
-         'user': kCFPreferencesCurrentUser,
-         'host': kCFPreferencesAnyHost
+        {
+            "file": "/var/root/Library/Preferences/%s.plist" % domain,
+            "domain": domain,
+            "user": kCFPreferencesCurrentUser,
+            "host": kCFPreferencesAnyHost,
         },
-        {'file': ('/var/root/Library/Preferences/ByHost/'
-                  '.GlobalPreferences.xxxx.plist'),
-         'domain': '.GlobalPreferences',
-         'user': kCFPreferencesCurrentUser,
-         'host': kCFPreferencesCurrentHost
+        {
+            "file": (
+                "/var/root/Library/Preferences/ByHost/" ".GlobalPreferences.xxxx.plist"
+            ),
+            "domain": ".GlobalPreferences",
+            "user": kCFPreferencesCurrentUser,
+            "host": kCFPreferencesCurrentHost,
         },
-        {'file': '/var/root/Library/Preferences/.GlobalPreferences.plist',
-         'domain': '.GlobalPreferences',
-         'user': kCFPreferencesCurrentUser,
-         'host': kCFPreferencesAnyHost
+        {
+            "file": "/var/root/Library/Preferences/.GlobalPreferences.plist",
+            "domain": ".GlobalPreferences",
+            "user": kCFPreferencesCurrentUser,
+            "host": kCFPreferencesAnyHost,
         },
-        {'file': '/Library/Preferences/%s.plist' % domain,
-         'domain': domain,
-         'user': kCFPreferencesAnyUser,
-         'host': kCFPreferencesCurrentHost
+        {
+            "file": "/Library/Preferences/%s.plist" % domain,
+            "domain": domain,
+            "user": kCFPreferencesAnyUser,
+            "host": kCFPreferencesCurrentHost,
         },
-        {'file': '/Library/Preferences/.GlobalPreferences.plist',
-         'domain': '.GlobalPreferences',
-         'user': kCFPreferencesAnyUser,
-         'host': kCFPreferencesCurrentHost
+        {
+            "file": "/Library/Preferences/.GlobalPreferences.plist",
+            "domain": ".GlobalPreferences",
+            "user": kCFPreferencesAnyUser,
+            "host": kCFPreferencesCurrentHost,
         },
     ]
     for level in levels:
-        if (value == CFPreferencesCopyValue(
-                pref_name, level['domain'], level['user'], level['host'])):
-            return '[%s]' % level['file']
+        if value == CFPreferencesCopyValue(
+            pref_name, level["domain"], level["user"], level["host"]
+        ):
+            return "[%s]" % level["file"]
     if value == DEFAULT_PREFS.get(pref_name):
-        return '[default]'
-    return '[unknown]'
+        return "[default]"
+    return "[unknown]"
 
 
 def print_config():
-    '''Prints the current Munki configuration'''
-    print('Current Munki configuration:')
+    """Prints the current Munki configuration"""
+    print("Current Munki configuration:")
     max_pref_name_len = max([len(pref_name) for pref_name in DEFAULT_PREFS])
     for pref_name in sorted(DEFAULT_PREFS):
-        if pref_name == 'LastNotifiedDate':
+        if pref_name == "LastNotifiedDate":
             # skip it
             continue
         if pref_name in FORCE_FALSE_ON_APPLE_SILICON:
@@ -315,22 +330,26 @@ def print_config():
         repr_value = value
         if is_a_string(value):
             repr_value = repr(value)
-        print(('%' + str(max_pref_name_len) + 's: %5s %s ') % (
-            pref_name, repr_value, where))
+        print(
+            ("%" + str(max_pref_name_len) + "s: %5s %s ")
+            % (pref_name, repr_value, where)
+        )
     # also print com.apple.SoftwareUpdate CatalogURL config if
     # Munki is configured to install Apple updates
-    if pref('InstallAppleSoftwareUpdates'):
-        print('Current Apple softwareupdate configuration:')
-        domain = 'com.apple.SoftwareUpdate'
-        pref_name = 'CatalogURL'
+    if pref("InstallAppleSoftwareUpdates"):
+        print("Current Apple softwareupdate configuration:")
+        domain = "com.apple.SoftwareUpdate"
+        pref_name = "CatalogURL"
         value = CFPreferencesCopyAppValue(pref_name, domain)
         where = get_config_level(domain, pref_name, value)
         repr_value = value
         if is_a_string(value):
             repr_value = repr(value)
-        print(('%' + str(max_pref_name_len) + 's: %5s %s ') % (
-            pref_name, repr_value, where))
+        print(
+            ("%" + str(max_pref_name_len) + "s: %5s %s ")
+            % (pref_name, repr_value, where)
+        )
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

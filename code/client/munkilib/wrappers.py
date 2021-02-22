@@ -26,26 +26,31 @@ import plistlib
 
 # plistlib wrappers
 
+
 class PlistError(Exception):
     """Base error for plists"""
+
     pass
 
 
 class PlistReadError(PlistError):
     """Error when reading plists"""
+
     pass
 
 
 class PlistWriteError(PlistError):
     """Error when writing plists"""
+
     pass
 
 
 # Disable PyLint complaining about 'invalid' camelCase names
 # pylint: disable=C0103
 
+
 def readPlist(filepath):
-    '''Wrapper for the differences between Python 2 and Python 3's plistlib'''
+    """Wrapper for the differences between Python 2 and Python 3's plistlib"""
     try:
         with open(filepath, "rb") as fileobj:
             return plistlib.load(fileobj)
@@ -60,7 +65,7 @@ def readPlist(filepath):
 
 
 def readPlistFromString(bytestring):
-    '''Wrapper for the differences between Python 2 and Python 3's plistlib'''
+    """Wrapper for the differences between Python 2 and Python 3's plistlib"""
     try:
         return plistlib.loads(bytestring)
     except AttributeError:
@@ -74,7 +79,7 @@ def readPlistFromString(bytestring):
 
 
 def writePlist(data, filepath):
-    '''Wrapper for the differences between Python 2 and Python 3's plistlib'''
+    """Wrapper for the differences between Python 2 and Python 3's plistlib"""
     try:
         with open(filepath, "wb") as fileobj:
             plistlib.dump(data, fileobj)
@@ -89,7 +94,7 @@ def writePlist(data, filepath):
 
 
 def writePlistToString(data):
-    '''Wrapper for the differences between Python 2 and Python 3's plistlib'''
+    """Wrapper for the differences between Python 2 and Python 3's plistlib"""
     try:
         return plistlib.dumps(data)
     except AttributeError:
@@ -108,10 +113,10 @@ def writePlistToString(data):
 # Python 2 and 3 wrapper for raw_input/input
 try:
     # Python 2
-    get_input = raw_input # pylint: disable=raw_input-builtin
+    get_input = raw_input  # pylint: disable=raw_input-builtin
 except NameError:
     # Python 3
-    get_input = input # pylint: disable=input-builtin
+    get_input = input  # pylint: disable=input-builtin
 
 
 # remap basestring in Python 3
@@ -120,13 +125,14 @@ try:
 except NameError:
     basestring = str
 
+
 def is_a_string(something):
-    '''Wrapper for basestring vs str'''
+    """Wrapper for basestring vs str"""
     return isinstance(something, basestring)
 
 
 def unicode_or_str(something, encoding="UTF-8"):
-    '''Wrapper for unicode vs str'''
+    """Wrapper for unicode vs str"""
     try:
         # Python 2
         if isinstance(something, str):

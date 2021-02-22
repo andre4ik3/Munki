@@ -34,25 +34,27 @@ from .. import FoundationPlist
 
 def filevault_is_active():
     """Check if FileVault is enabled; returns True or False accordingly."""
-    display.display_debug1('Checking if FileVault is enabled...')
-    active_cmd = ['/usr/bin/fdesetup', 'isactive']
+    display.display_debug1("Checking if FileVault is enabled...")
+    active_cmd = ["/usr/bin/fdesetup", "isactive"]
     try:
         is_active = subprocess.check_output(
-            active_cmd, stderr=subprocess.STDOUT).decode('UTF-8')
+            active_cmd, stderr=subprocess.STDOUT
+        ).decode("UTF-8")
     except subprocess.CalledProcessError as exc:
-        if exc.output and 'false' in exc.output.decode('UTF-8'):
+        if exc.output and "false" in exc.output.decode("UTF-8"):
             # fdesetup isactive returns 1 when FileVault is not active
-            display.display_debug1('FileVault appears to be disabled...')
+            display.display_debug1("FileVault appears to be disabled...")
         elif not exc.output:
             display.display_warning(
-                'Encountered problem determining FileVault status...')
+                "Encountered problem determining FileVault status..."
+            )
         else:
             display.display_warning(exc.output)
         return False
-    if 'true' in is_active:
-        display.display_debug1('FileVault appears to be enabled...')
+    if "true" in is_active:
+        display.display_debug1("FileVault appears to be enabled...")
         return True
-    display.display_debug1('Could not confirm FileVault is enabled...')
+    display.display_debug1("Could not confirm FileVault is enabled...")
     return False
 
 
@@ -60,52 +62,58 @@ def supports_auth_restart():
     """Checks if an Authorized Restart is supported; returns True
     or False accordingly.
     """
-    display.display_debug1(
-        'Checking if FileVault can perform an AuthRestart...')
-    support_cmd = ['/usr/bin/fdesetup', 'supportsauthrestart']
+    display.display_debug1("Checking if FileVault can perform an AuthRestart...")
+    support_cmd = ["/usr/bin/fdesetup", "supportsauthrestart"]
     try:
         is_supported = subprocess.check_output(
-            support_cmd, stderr=subprocess.STDOUT).decode('UTF-8')
+            support_cmd, stderr=subprocess.STDOUT
+        ).decode("UTF-8")
     except subprocess.CalledProcessError as exc:
         if exc.output:
             display.display_warning(exc.output)
         else:
             display.display_warning(
-                'Encountered problem determining AuthRestart status...')
+                "Encountered problem determining AuthRestart status..."
+            )
         return False
-    if 'true' in is_supported:
-        display.display_debug1('FileVault supports AuthRestart...')
+    if "true" in is_supported:
+        display.display_debug1("FileVault supports AuthRestart...")
         return True
 
-    display.display_warning('FileVault AuthRestart is not supported...')
+    display.display_warning("FileVault AuthRestart is not supported...")
     return False
 
 
 def is_fv_user(username):
     """Returns a boolean indicating if username is in the list of FileVault
     authorized users"""
-    cmd = ['/usr/bin/fdesetup', 'list']
+    cmd = ["/usr/bin/fdesetup", "list"]
     try:
-        userlist = subprocess.check_output(
-            cmd, stderr=subprocess.STDOUT).decode('UTF-8')
+        userlist = subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode(
+            "UTF-8"
+        )
     except subprocess.CalledProcessError:
         return False
     # output is in the format
     # jsmith,911D2742-7983-436D-9FA3-3F6B7421684B
     # tstark,5B0EBEE6-0917-47B2-BFF3-78A9DE437D65
     for line in userlist.splitlines():
-        if line.split(',')[0] == username:
+        if line.split(",")[0] == username:
             return True
     return False
 
 
 def can_attempt_auth_restart_for(username):
-    '''Returns a boolean to indicate if all the needed conditions are present
-    for us to attempt an authrestart with username's password'''
+    """Returns a boolean to indicate if all the needed conditions are present
+    for us to attempt an authrestart with username's password"""
     os_version_tuple = osutils.getOsVersion(as_tuple=True)
-    return (os_version_tuple >= (10, 8) and
-            prefs.pref('PerformAuthRestarts') and filevault_is_active() and
-            supports_auth_restart() and is_fv_user(username))
+    return (
+        os_version_tuple >= (10, 8)
+        and prefs.pref("PerformAuthRestarts")
+        and filevault_is_active()
+        and supports_auth_restart()
+        and is_fv_user(username)
+    )
 
 
 def get_auth_restart_key(quiet=False):
@@ -113,39 +121,45 @@ def get_auth_restart_key(quiet=False):
     to get the proper information, returns an empty string.
     If quiet is set, fail silently"""
     # checks to see if recovery key preference is set
-    recoverykeyplist = prefs.pref('RecoveryKeyFile')
+    recoverykeyplist = prefs.pref("RecoveryKeyFile")
     if not recoverykeyplist:
         if not quiet:
-            display.display_debug1('RecoveryKeyFile preference is not set')
-        return ''
+            display.display_debug1("RecoveryKeyFile preference is not set")
+        return ""
     if not quiet:
         display.display_debug1(
-            'RecoveryKeyFile preference is set to %s...', recoverykeyplist)
+            "RecoveryKeyFile preference is set to %s...", recoverykeyplist
+        )
     # try to get the recovery key from the defined location
     try:
         keyplist = FoundationPlist.readPlist(recoverykeyplist)
-        recovery_key = keyplist['RecoveryKey'].strip()
+        recovery_key = keyplist["RecoveryKey"].strip()
         return recovery_key
     except FoundationPlist.NSPropertyListSerializationException:
         if not quiet:
             display.display_error(
-                'We had trouble getting info from %s...', recoverykeyplist)
-        return ''
+                "We had trouble getting info from %s...", recoverykeyplist
+            )
+        return ""
     except (KeyError, ValueError):
         if not quiet:
             display.display_error(
-                'Problem with key: RecoveryKey in %s...', recoverykeyplist)
-        return ''
+                "Problem with key: RecoveryKey in %s...", recoverykeyplist
+            )
+        return ""
 
 
 def can_attempt_auth_restart(have_password=False):
-    '''Returns a boolean to indicate if all the needed conditions are present
-    for us to attempt an authrestart'''
+    """Returns a boolean to indicate if all the needed conditions are present
+    for us to attempt an authrestart"""
     os_version_tuple = osutils.getOsVersion(as_tuple=True)
-    return (os_version_tuple >= (10, 8) and
-            prefs.pref('PerformAuthRestarts') and
-            filevault_is_active() and supports_auth_restart() and
-            (get_auth_restart_key(quiet=True) != '' or have_password))
+    return (
+        os_version_tuple >= (10, 8)
+        and prefs.pref("PerformAuthRestarts")
+        and filevault_is_active()
+        and supports_auth_restart()
+        and (get_auth_restart_key(quiet=True) != "" or have_password)
+    )
 
 
 def perform_auth_restart(username=None, password=None, delayminutes=0):
@@ -156,37 +170,39 @@ def perform_auth_restart(username=None, password=None, delayminutes=0):
     (or recovery key) passed into the function. It will use that value to
     perform the restart."""
     display.display_debug1(
-        'Checking if performing an Auth Restart is fully supported...')
+        "Checking if performing an Auth Restart is fully supported..."
+    )
     if not supports_auth_restart():
-        display.display_warning(
-            "Machine doesn't support Authorized Restarts...")
+        display.display_warning("Machine doesn't support Authorized Restarts...")
         return False
-    display.display_debug1('Machine supports Authorized Restarts...')
+    display.display_debug1("Machine supports Authorized Restarts...")
     password = get_auth_restart_key() or password
     if not password:
         return False
-    keys = {'Password': password}
+    keys = {"Password": password}
     if username:
-        keys['Username'] = username
+        keys["Username"] = username
     inputplist = FoundationPlist.writePlistToString(keys)
     if delayminutes == 0:
-        display.display_info('Attempting an Authorized Restart now...')
+        display.display_info("Attempting an Authorized Restart now...")
     else:
-        display.display_info('Configuring a delayed Authorized Restart...')
+        display.display_info("Configuring a delayed Authorized Restart...")
     os_version_tuple = osutils.getOsVersion(as_tuple=True)
     if os_version_tuple >= (10, 12):
-        cmd = ['/usr/bin/fdesetup', 'authrestart',
-               '-delayminutes', str(delayminutes), '-inputplist']
+        cmd = [
+            "/usr/bin/fdesetup",
+            "authrestart",
+            "-delayminutes",
+            str(delayminutes),
+            "-inputplist",
+        ]
     else:
-        cmd = ['/usr/bin/fdesetup', 'authrestart', '-inputplist']
+        cmd = ["/usr/bin/fdesetup", "authrestart", "-inputplist"]
     proc = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stdin=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE
     )
-    err = proc.communicate(input=inputplist)[1].decode('UTF-8')
-    if os_version_tuple >= (10, 12) and 'System is being restarted' in err:
+    err = proc.communicate(input=inputplist)[1].decode("UTF-8")
+    if os_version_tuple >= (10, 12) and "System is being restarted" in err:
         return True
     if err:
         display.display_error(err)
@@ -195,37 +211,38 @@ def perform_auth_restart(username=None, password=None, delayminutes=0):
     return True
 
 
-def do_authorized_or_normal_restart(username=None,
-                                    password=None,
-                                    shutdown=False):
-    '''Do a shutdown if needed, or an authrestart if allowed/possible,
-    else do a normal restart.'''
+def do_authorized_or_normal_restart(username=None, password=None, shutdown=False):
+    """Do a shutdown if needed, or an authrestart if allowed/possible,
+    else do a normal restart."""
     if shutdown:
         # we need a shutdown here instead of any type of restart
-        display.display_info('Shutting down now.')
-        display.display_debug1('Performing a regular shutdown...')
-        dummy_retcode = subprocess.call(['/sbin/shutdown', '-h', '-o', 'now'])
+        display.display_info("Shutting down now.")
+        display.display_debug1("Performing a regular shutdown...")
+        dummy_retcode = subprocess.call(["/sbin/shutdown", "-h", "-o", "now"])
         return
-    display.display_info('Restarting now.')
+    display.display_info("Restarting now.")
     os_version_tuple = osutils.getOsVersion(as_tuple=True)
-    if (prefs.pref('PerformAuthRestarts') and
-            (prefs.pref('RecoveryKeyFile') or password) and
-            os_version_tuple >= (10, 8)):
+    if (
+        prefs.pref("PerformAuthRestarts")
+        and (prefs.pref("RecoveryKeyFile") or password)
+        and os_version_tuple >= (10, 8)
+    ):
         if filevault_is_active():
-            display.display_debug1('Configured to perform AuthRestarts...')
+            display.display_debug1("Configured to perform AuthRestarts...")
             # try to perform an auth restart
             if not perform_auth_restart(username=username, password=password):
                 # if we got to here then the auth restart failed
                 # notify that it did then perform a normal restart
                 display.display_warning(
-                    'Authorized Restart failed. Performing normal restart...')
+                    "Authorized Restart failed. Performing normal restart..."
+                )
             else:
                 # we triggered an authrestart
                 return
     # fall back to normal restart
-    display.display_debug1('Performing a regular restart...')
-    dummy_retcode = subprocess.call(['/sbin/shutdown', '-r', 'now'])
+    display.display_debug1("Performing a regular restart...")
+    dummy_retcode = subprocess.call(["/sbin/shutdown", "-r", "now"])
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

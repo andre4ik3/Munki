@@ -5,8 +5,10 @@ import subprocess
 import sys
 
 print("Checking code against pep8...")
-ps = subprocess.Popen(['git', 'diff', 'HEAD^'], stdout=subprocess.PIPE)
-tests = subprocess.Popen(['flake8', '--diff', '--ignore=E501'], stdin=ps.stdout, stdout=subprocess.PIPE)
+ps = subprocess.Popen(["git", "diff", "HEAD^"], stdout=subprocess.PIPE)
+tests = subprocess.Popen(
+    ["flake8", "--diff", "--ignore=E501"], stdin=ps.stdout, stdout=subprocess.PIPE
+)
 out, err = tests.communicate()
 
 if out:

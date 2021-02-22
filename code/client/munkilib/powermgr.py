@@ -25,6 +25,7 @@ import objc
 # No name 'Foo' in module 'Bar' warnings. Disable them.
 # pylint: disable=no-name-in-module
 from Foundation import NSBundle
+
 # pylint:enable=no-name-in-module
 
 from . import display
@@ -37,27 +38,29 @@ from . import display
 #
 
 # https://developer.apple.com/documentation/iokit/iopowersources.h?language=objc
-IOKit = NSBundle.bundleWithIdentifier_('com.apple.framework.IOKit')
+IOKit = NSBundle.bundleWithIdentifier_("com.apple.framework.IOKit")
 
-functions = [("IOPMAssertionCreateWithName", b"i@i@o^i"),
-             ("IOPMAssertionRelease", b"vi"),
-             ("IOPSGetPowerSourceDescription", b"@@@"),
-             ("IOPSCopyPowerSourcesInfo", b"@"),
-             ("IOPSCopyPowerSourcesList", b"@@"),
-             ("IOPSGetProvidingPowerSourceType", b"@@"),
-            ]
+functions = [
+    ("IOPMAssertionCreateWithName", b"i@i@o^i"),
+    ("IOPMAssertionRelease", b"vi"),
+    ("IOPSGetPowerSourceDescription", b"@@@"),
+    ("IOPSCopyPowerSourcesInfo", b"@"),
+    ("IOPSCopyPowerSourcesList", b"@@"),
+    ("IOPSGetProvidingPowerSourceType", b"@@"),
+]
 
 # No idea why PyLint complains about objc.loadBundleFunctions
 # pylint: disable=no-member
 objc.loadBundleFunctions(IOKit, globals(), functions)
 # pylint: enable=no-member
 
+
 def onACPower():
     """Returns a boolean to indicate if the machine is on AC power"""
     # pylint: disable=undefined-variable
     power_source = IOPSGetProvidingPowerSourceType(IOPSCopyPowerSourcesInfo())
     # pylint: enable=undefined-variable
-    return power_source == 'AC Power'
+    return power_source == "AC Power"
 
 
 def onBatteryPower():
@@ -65,7 +68,7 @@ def onBatteryPower():
     # pylint: disable=undefined-variable
     power_source = IOPSGetProvidingPowerSourceType(IOPSCopyPowerSourcesInfo())
     # pylint: enable=undefined-variable
-    return power_source == 'Battery Power'
+    return power_source == "Battery Power"
 
 
 def getBatteryPercentage():
@@ -75,8 +78,8 @@ def getBatteryPercentage():
     power_sources = IOPSCopyPowerSourcesList(ps_blob)
     for source in power_sources:
         description = IOPSGetPowerSourceDescription(ps_blob, source)
-        if description.get('Type') == 'InternalBattery':
-            return description.get('Current Capacity', 0)
+        if description.get("Type") == "InternalBattery":
+            return description.get("Current Capacity", 0)
     return 0
 
 
@@ -84,14 +87,13 @@ def assertNoIdleSleep(reason=None):
     """Uses IOKit functions to prevent idle sleep."""
     kIOPMAssertionTypeNoIdleSleep = "NoIdleSleepAssertion"
     kIOPMAssertionLevelOn = 255
-    display.display_info('Preventing idle sleep')
+    display.display_info("Preventing idle sleep")
     if not reason:
-        reason = 'Munki is installing software'
+        reason = "Munki is installing software"
     # pylint: disable=undefined-variable
     errcode, assertID = IOPMAssertionCreateWithName(
-        kIOPMAssertionTypeNoIdleSleep,
-        kIOPMAssertionLevelOn,
-        reason, None)
+        kIOPMAssertionTypeNoIdleSleep, kIOPMAssertionLevelOn, reason, None
+    )
     # pylint: enable=undefined-variable
     if errcode:
         return None
@@ -101,7 +103,7 @@ def assertNoIdleSleep(reason=None):
 def removeNoIdleSleepAssertion(assertion_id):
     """Uses IOKit functions to remove a "no idle sleep" assertion."""
     if assertion_id:
-        display.display_info('Allowing idle sleep')
+        display.display_info("Allowing idle sleep")
         # pylint: disable=undefined-variable
         IOPMAssertionRelease(assertion_id)
 
@@ -109,6 +111,7 @@ def removeNoIdleSleepAssertion(assertion_id):
 class Caffeinator(object):
     """A simple object that prevents idle sleep and automagically
     removes the assertion when the object goes out of scope"""
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self, reason=None):
@@ -120,5 +123,5 @@ class Caffeinator(object):
         removeNoIdleSleepAssertion(self.assertion_id)
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

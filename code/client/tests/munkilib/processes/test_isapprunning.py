@@ -7,6 +7,7 @@ Unit tests for processes.isAppRunning.
 
 """
 from __future__ import absolute_import, print_function
+
 # Copyright 2016-present Nate Walck.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +33,7 @@ try:
     from mock import patch
 except ImportError:
     import sys
+
     print("mock module is required. run: easy_install mock", file=sys.stderr)
     raise
 
@@ -45,74 +47,71 @@ class TestIsAppRunning(unittest.TestCase):
     def tearDown(self):
         self.processes = []
 
-    @patch('munkilib.processes.getRunningProcesses', return_value=getRunningProcessesMock())
+    @patch(
+        "munkilib.processes.getRunningProcesses", return_value=getRunningProcessesMock()
+    )
     def test_app_with_exact_path_match(self, ps_mock):
         print("Testing isAppRunning with exact path match...")
         self.assertEqual(
-            processes.is_app_running('/Applications/Firefox.app/Contents/MacOS/firefox'),
-            True
+            processes.is_app_running(
+                "/Applications/Firefox.app/Contents/MacOS/firefox"
+            ),
+            True,
         )
 
-    @patch('munkilib.processes.getRunningProcesses', return_value=getRunningProcessesMock())
+    @patch(
+        "munkilib.processes.getRunningProcesses", return_value=getRunningProcessesMock()
+    )
     def test_app_with_exact_path_no_match(self, ps_mock):
         print("Testing isAppRunning with exact path no matches...")
-        self.assertEqual(
-            processes.is_app_running('/usr/local/bin/bonzi'),
-            False
-        )
+        self.assertEqual(processes.is_app_running("/usr/local/bin/bonzi"), False)
 
-    @patch('munkilib.processes.getRunningProcesses', return_value=getRunningProcessesMock())
+    @patch(
+        "munkilib.processes.getRunningProcesses", return_value=getRunningProcessesMock()
+    )
     def test_app_by_filename_match(self, ps_mock):
         print("Testing isAppRunning with file name match...")
-        self.assertEqual(
-            processes.is_app_running('Firefox.app'),
-            True
-        )
+        self.assertEqual(processes.is_app_running("Firefox.app"), True)
 
-    @patch('munkilib.processes.getRunningProcesses', return_value=getRunningProcessesMock())
+    @patch(
+        "munkilib.processes.getRunningProcesses", return_value=getRunningProcessesMock()
+    )
     def test_app_by_filename_no_match(self, ps_mock):
         print("Testing isAppRunning with file name no matches...")
-        self.assertEqual(
-            processes.is_app_running('BonziBUDDY.app'),
-            False
-        )
+        self.assertEqual(processes.is_app_running("BonziBUDDY.app"), False)
 
-    @patch('munkilib.processes.getRunningProcesses', return_value=getRunningProcessesMock())
+    @patch(
+        "munkilib.processes.getRunningProcesses", return_value=getRunningProcessesMock()
+    )
     def test_app_by_executable_name_match(self, ps_mock):
         print("Testing isAppRunning with executable name match...")
-        self.assertEqual(
-            processes.is_app_running('firefox'),
-            True
-        )
+        self.assertEqual(processes.is_app_running("firefox"), True)
 
-    @patch('munkilib.processes.getRunningProcesses', return_value=getRunningProcessesMock())
+    @patch(
+        "munkilib.processes.getRunningProcesses", return_value=getRunningProcessesMock()
+    )
     def test_app_by_executable_name_no_match(self, ps_mock):
         print("Testing isAppRunning with executable name no matches...")
-        self.assertEqual(
-            processes.is_app_running('bonzi'),
-            False
-        )
+        self.assertEqual(processes.is_app_running("bonzi"), False)
 
-    @patch('munkilib.processes.getRunningProcesses', return_value=getRunningProcessesMock())
+    @patch(
+        "munkilib.processes.getRunningProcesses", return_value=getRunningProcessesMock()
+    )
     def test_app_name_with_dot_app_match(self, ps_mock):
         print("Testing isAppRunning with name plus .app match...")
-        self.assertEqual(
-            processes.is_app_running('Firefox'),
-            True
-        )
+        self.assertEqual(processes.is_app_running("Firefox"), True)
 
-    @patch('munkilib.processes.getRunningProcesses', return_value=getRunningProcessesMock())
+    @patch(
+        "munkilib.processes.getRunningProcesses", return_value=getRunningProcessesMock()
+    )
     def test_app_name_with_dot_app_no_match(self, ps_mock):
         print("Testing isAppRunning with name plus .app match...")
-        self.assertEqual(
-            processes.is_app_running('BonziBUDDY'),
-            False
-        )
+        self.assertEqual(processes.is_app_running("BonziBUDDY"), False)
 
 
 def main():
     unittest.main(buffer=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

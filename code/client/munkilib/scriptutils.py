@@ -33,13 +33,13 @@ from . import munkistatus
 
 
 def _writefile(stringdata, path):
-    '''Writes string data to path.
-    Returns the path on success, empty string on failure.'''
+    """Writes string data to path.
+    Returns the path on success, empty string on failure."""
     try:
-        fileobject = open(path, mode='wb')
+        fileobject = open(path, mode="wb")
         # write line-by-line to ensure proper UNIX line-endings
         for line in stringdata.splitlines():
-            fileobject.write(line.encode('UTF-8') + b"\n")
+            fileobject.write(line.encode("UTF-8") + b"\n")
         fileobject.close()
         return path
     except (OSError, IOError):
@@ -48,62 +48,59 @@ def _writefile(stringdata, path):
 
 
 def run_embedded_script(scriptname, pkginfo_item, suppress_error=False):
-    '''Runs a script embedded in the pkginfo.
-    Returns the result code.'''
+    """Runs a script embedded in the pkginfo.
+    Returns the result code."""
 
     # get the script text from the pkginfo
     script_text = pkginfo_item.get(scriptname)
-    itemname = pkginfo_item.get('name')
+    itemname = pkginfo_item.get("name")
     if not script_text:
-        display.display_error(
-            'Missing script %s for %s' % (scriptname, itemname))
+        display.display_error("Missing script %s for %s" % (scriptname, itemname))
         return -1
 
     # write the script to a temp file
     scriptpath = os.path.join(osutils.tmpdir(), scriptname)
     if _writefile(script_text, scriptpath):
-        cmd = ['/bin/chmod', '-R', 'o+x', scriptpath]
+        cmd = ["/bin/chmod", "-R", "o+x", scriptpath]
         retcode = subprocess.call(cmd)
         if retcode:
             display.display_error(
-                'Error setting script mode in %s for %s'
-                % (scriptname, itemname))
+                "Error setting script mode in %s for %s" % (scriptname, itemname)
+            )
             return -1
     else:
-        display.display_error(
-            'Cannot write script %s for %s' % (scriptname, itemname))
+        display.display_error("Cannot write script %s for %s" % (scriptname, itemname))
         return -1
 
     # now run the script
-    return run_script(
-        itemname, scriptpath, scriptname, suppress_error=suppress_error)
+    return run_script(itemname, scriptpath, scriptname, suppress_error=suppress_error)
 
 
 def run_script(itemname, path, scriptname, suppress_error=False):
-    '''Runs a script, Returns return code.'''
+    """Runs a script, Returns return code."""
     if suppress_error:
-        display.display_detail(
-            'Running %s for %s ' % (scriptname, itemname))
+        display.display_detail("Running %s for %s " % (scriptname, itemname))
     else:
-        display.display_status_minor(
-            'Running %s for %s ' % (scriptname, itemname))
+        display.display_status_minor("Running %s for %s " % (scriptname, itemname))
     if display.munkistatusoutput:
         # set indeterminate progress bar
         munkistatus.percent(-1)
 
     scriptoutput = []
     try:
-        proc = subprocess.Popen(path, shell=False,
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(
+            path,
+            shell=False,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
     except OSError as err:
-        display.display_error(
-            'Error executing script %s: %s' % (scriptname, str(err)))
+        display.display_error("Error executing script %s: %s" % (scriptname, str(err)))
         return -1
 
     while True:
-        msg = proc.stdout.readline().decode('UTF-8')
+        msg = proc.stdout.readline().decode("UTF-8")
         if not msg and (proc.poll() != None):
             break
         # save all script output in case there is
@@ -114,15 +111,13 @@ def run_script(itemname, path, scriptname, suppress_error=False):
 
     retcode = proc.poll()
     if retcode and not suppress_error:
-        display.display_error(
-            'Running %s for %s failed.' % (scriptname, itemname))
-        display.display_error("-"*78)
+        display.display_error("Running %s for %s failed." % (scriptname, itemname))
+        display.display_error("-" * 78)
         for line in scriptoutput:
             display.display_error("\t%s" % line.rstrip("\n"))
-        display.display_error("-"*78)
+        display.display_error("-" * 78)
     elif not suppress_error:
-        munkilog.log(
-            'Running %s for %s was successful.' % (scriptname, itemname))
+        munkilog.log("Running %s for %s was successful." % (scriptname, itemname))
 
     if display.munkistatusoutput:
         # clear indeterminate progress bar
@@ -131,5 +126,5 @@ def run_script(itemname, path, scriptname, suppress_error=False):
     return retcode
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

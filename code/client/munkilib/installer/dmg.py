@@ -36,28 +36,27 @@ from .. import pkgutils
 
 
 def set_permissions(item, full_destpath):
-    '''Sets owner, group and mode for full_destpath from info in item.
-    Returns 0 on success, non-zero otherwise'''
+    """Sets owner, group and mode for full_destpath from info in item.
+    Returns 0 on success, non-zero otherwise"""
     # set owner and group
-    user = item.get('user', 'root')
-    group = item.get('group', 'admin')
+    user = item.get("user", "root")
+    group = item.get("group", "admin")
     display.display_detail(
-        "Setting owner and group for '%s' to '%s:%s'" % (full_destpath, user, group))
+        "Setting owner and group for '%s' to '%s:%s'" % (full_destpath, user, group)
+    )
     retcode = subprocess.call(
-        ['/usr/sbin/chown', '-R', user + ':' + group, full_destpath])
+        ["/usr/sbin/chown", "-R", user + ":" + group, full_destpath]
+    )
     if retcode:
-        display.display_error(
-            "Error setting owner and group for %s" % (full_destpath))
+        display.display_error("Error setting owner and group for %s" % (full_destpath))
         return retcode
 
     # set mode
-    mode = item.get('mode', 'o-w,go+rX')
-    display.display_detail(
-        "Setting mode for '%s' to '%s'" % (full_destpath, mode))
-    retcode = subprocess.call(['/bin/chmod', '-R', mode, full_destpath])
+    mode = item.get("mode", "o-w,go+rX")
+    display.display_detail("Setting mode for '%s' to '%s'" % (full_destpath, mode))
+    retcode = subprocess.call(["/bin/chmod", "-R", mode, full_destpath])
     if retcode:
-        display.display_error(
-            "Error setting mode for %s" % (full_destpath))
+        display.display_error("Error setting mode for %s" % (full_destpath))
         return retcode
 
     # no errors!
@@ -65,12 +64,13 @@ def set_permissions(item, full_destpath):
 
 
 def create_missing_dirs(destpath):
-    '''Creates any missing intermediate directories so we can copy item.
-    Returns non-zero if there is an error, 0 otherwise'''
+    """Creates any missing intermediate directories so we can copy item.
+    Returns non-zero if there is an error, 0 otherwise"""
     if not os.path.exists(destpath):
         display.display_detail(
             "Destination path %s does not exist, will determine "
-            "owner/permissions from parent" % destpath)
+            "owner/permissions from parent" % destpath
+        )
         parent_path = destpath
         new_paths = []
 
@@ -89,12 +89,13 @@ def create_missing_dirs(destpath):
             os.makedirs(destpath, mode=parent_mode)
         except IOError:
             display.display_error(
-                "There was an IO error in creating the path %s!", destpath)
+                "There was an IO error in creating the path %s!", destpath
+            )
             return -1
         except BaseException:
             display.display_error(
-                "There was an unknown error in creating the path %s!"
-                % destpath)
+                "There was an unknown error in creating the path %s!" % destpath
+            )
             return -1
 
         # chown each new dir
@@ -104,19 +105,22 @@ def create_missing_dirs(destpath):
 
 
 def remove_quarantine_from_item(some_path):
-    '''Removes com.apple.quarantine from some_path'''
+    """Removes com.apple.quarantine from some_path"""
     try:
-        if ("com.apple.quarantine" in
-                xattr.xattr(some_path).list(options=xattr.XATTR_NOFOLLOW)):
-            xattr.xattr(some_path).remove("com.apple.quarantine",
-                                          options=xattr.XATTR_NOFOLLOW)
+        if "com.apple.quarantine" in xattr.xattr(some_path).list(
+            options=xattr.XATTR_NOFOLLOW
+        ):
+            xattr.xattr(some_path).remove(
+                "com.apple.quarantine", options=xattr.XATTR_NOFOLLOW
+            )
     except BaseException as err:
         display.display_warning(
-            "Error removing com.apple.quarantine from %s: %s", some_path, err)
+            "Error removing com.apple.quarantine from %s: %s", some_path, err
+        )
 
 
 def remove_quarantine(some_path):
-    '''Removes com.apple.quarantine from some_path, recursively'''
+    """Removes com.apple.quarantine from some_path, recursively"""
     remove_quarantine_from_item(some_path)
     if os.path.isdir(some_path):
         for (dirpath, dirnames, filenames) in os.walk(some_path, topdown=True):
@@ -127,8 +131,8 @@ def remove_quarantine(some_path):
 
 
 def validate_source_and_destination(mountpoint, item):
-    '''Validates source and destination for item to be copied from a mounted
-    disk image. Returns a tuple of (errorcode, source_path, destination_path)'''
+    """Validates source and destination for item to be copied from a mounted
+    disk image. Returns a tuple of (errorcode, source_path, destination_path)"""
     # get source itemname
     source_itemname = item.get("source_item")
     if not source_itemname:
@@ -138,15 +142,14 @@ def validate_source_and_destination(mountpoint, item):
     # check source path to see if it's present
     source_itempath = os.path.join(mountpoint, source_itemname)
     if not os.path.exists(source_itempath):
-        display.display_error(
-            "Source item %s does not exist!", source_itemname)
+        display.display_error("Source item %s does not exist!", source_itemname)
         return (-1, None, None)
 
     # get destination path and item name
-    destpath = item.get('destination_path')
+    destpath = item.get("destination_path")
     dest_itemname = item.get("destination_item")
     if not destpath:
-        destpath = item.get('destination_item')
+        destpath = item.get("destination_item")
         if destpath:
             # split it into path and name
             dest_itemname = os.path.basename(destpath)
@@ -163,13 +166,14 @@ def validate_source_and_destination(mountpoint, item):
     # setup full destination path using 'destination_item', if supplied,
     # source_item if not.
     full_destpath = os.path.join(
-        destpath, os.path.basename(dest_itemname or source_itemname))
+        destpath, os.path.basename(dest_itemname or source_itemname)
+    )
 
     return (0, source_itempath, full_destpath)
 
 
 def get_size(pathname):
-    '''Recursively gets size of pathname in bytes'''
+    """Recursively gets size of pathname in bytes"""
     if os.path.isdir(pathname):
         total_size = 0
         for dirpath, _, filenames in os.walk(pathname):
@@ -185,21 +189,25 @@ def get_size(pathname):
 
 
 def ditto_with_progress(source_path, dest_path):
-    '''Uses ditto to copy an item and provides progress output'''
+    """Uses ditto to copy an item and provides progress output"""
     source_size = get_size(source_path)
     total_bytes_copied = 0
 
-    cmd = ["/usr/bin/ditto", "-V", "--noqtn", source_path, dest_path]
-    proc = subprocess.Popen(cmd, shell=False, bufsize=-1,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT)
+    cmd = ["/usr/bin/ditto", "-Vxk", "--noqtn", source_path, dest_path]
+    proc = subprocess.Popen(
+        cmd,
+        shell=False,
+        bufsize=-1,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
 
     while True:
-        output = proc.stdout.readline().decode('UTF-8')
+        output = proc.stdout.readline().decode("UTF-8")
         if not output and (proc.poll() != None):
             break
-        words = output.rstrip('\n').split()
+        words = output.rstrip("\n").split()
         if len(words) > 1 and words[1] == "bytes":
             try:
                 bytes_copied = int(words[0])
@@ -213,35 +221,37 @@ def ditto_with_progress(source_path, dest_path):
 
 
 def copy_items_from_mountpoint(mountpoint, itemlist):
-    '''copies items from the mountpoint to the startup disk
+    """copies items from the mountpoint to the startup disk
     Returns 0 if no issues; some error code otherwise.
 
     If the 'destination_item' key is provided, items will be copied
-    as its value.'''
+    as its value."""
     temp_destination_dir = tempfile.mkdtemp(dir=osutils.tmpdir())
     for item in itemlist:
 
-        (errorcode,
-         source_path,
-         destination_path) = validate_source_and_destination(mountpoint, item)
+        (errorcode, source_path, destination_path) = validate_source_and_destination(
+            mountpoint, item
+        )
         if errorcode:
             return errorcode
 
         # validation passed, OK to copy
         display.display_status_minor(
-            "Copying %s to %s",
-            os.path.basename(source_path), destination_path)
+            "Copying %s to %s", os.path.basename(source_path), destination_path
+        )
 
         temp_destination_path = os.path.join(
-            temp_destination_dir, os.path.basename(destination_path))
+            temp_destination_dir, os.path.basename(destination_path)
+        )
         # copy the file or directory, removing the quarantine xattr and
         # preserving HFS+ compression
-        #retcode = subprocess.call(["/usr/bin/ditto", "--noqtn",
+        # retcode = subprocess.call(["/usr/bin/ditto", "--noqtn",
         #                           source_path, temp_destination_path])
         retcode = ditto_with_progress(source_path, temp_destination_path)
         if retcode:
             display.display_error(
-                "Error copying %s to %s", source_path, temp_destination_path)
+                "Error copying %s to %s", source_path, temp_destination_path
+            )
             return retcode
 
         # remove com.apple.quarantine xattr since `man ditto` lies and doesn't
@@ -255,8 +265,7 @@ def copy_items_from_mountpoint(mountpoint, itemlist):
 
         # mv temp_destination_path to final destination path
         try:
-            if (os.path.islink(destination_path) or
-                    os.path.isfile(destination_path)):
+            if os.path.islink(destination_path) or os.path.isfile(destination_path):
                 os.unlink(destination_path)
             elif os.path.isdir(destination_path):
                 shutil.rmtree(destination_path)
@@ -274,11 +283,10 @@ def copy_items_from_mountpoint(mountpoint, itemlist):
 
 
 def copy_app_from_dmg(dmgpath):
-    '''copies application from DMG to /Applications
+    """copies application from DMG to /Applications
     This type of installer_type is deprecated and should be
-    replaced with the more generic copyFromDMG'''
-    display.display_status_minor(
-        'Mounting disk image %s', os.path.basename(dmgpath))
+    replaced with the more generic copyFromDMG"""
+    display.display_status_minor("Mounting disk image %s", os.path.basename(dmgpath))
     mountpoints = dmgutils.mountdmg(dmgpath)
     if mountpoints:
         retcode = 0
@@ -295,49 +303,49 @@ def copy_app_from_dmg(dmgpath):
             # make an itemlist we can pass to copyItemsFromMountpoint
             itemlist = []
             item = {}
-            item['source_item'] = appname
-            item['destination_path'] = "/Applications"
+            item["source_item"] = appname
+            item["destination_path"] = "/Applications"
             itemlist.append(item)
             retcode = copy_items_from_mountpoint(mountpoint, itemlist)
             if retcode == 0:
                 # let the user know we completed successfully
-                display.display_status_minor(
-                    "The software was successfully installed.")
+                display.display_status_minor("The software was successfully installed.")
         else:
             display.display_error(
-                "No application found on %s", os.path.basename(dmgpath))
+                "No application found on %s", os.path.basename(dmgpath)
+            )
             retcode = -2
         dmgutils.unmountdmg(mountpoint)
         return retcode
     else:
         display.display_error(
-            "No mountable filesystems on %s", os.path.basename(dmgpath))
+            "No mountable filesystems on %s", os.path.basename(dmgpath)
+        )
         return -1
 
 
 def copy_from_dmg(dmgpath, itemlist):
-    '''copies items from DMG to local disk'''
+    """copies items from DMG to local disk"""
     if not itemlist:
         display.display_error("No items to copy!")
         return -1
 
-    display.display_status_minor(
-        'Mounting disk image %s', os.path.basename(dmgpath))
+    display.display_status_minor("Mounting disk image %s", os.path.basename(dmgpath))
     mountpoints = dmgutils.mountdmg(dmgpath, skip_verification=True)
     if mountpoints:
         mountpoint = mountpoints[0]
         retcode = copy_items_from_mountpoint(mountpoint, itemlist)
         if retcode == 0:
             # let the user know we completed successfully
-            display.display_status_minor(
-                "The software was successfully installed.")
+            display.display_status_minor("The software was successfully installed.")
         dmgutils.unmountdmg(mountpoint)
         return retcode
     else:
         display.display_error(
-            "No mountable filesystems on %s", os.path.basename(dmgpath))
+            "No mountable filesystems on %s", os.path.basename(dmgpath)
+        )
         return -1
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

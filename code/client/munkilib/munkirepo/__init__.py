@@ -1,4 +1,4 @@
-'''Base bits for repo plugins'''
+"""Base bits for repo plugins"""
 from __future__ import absolute_import, print_function
 
 import imp
@@ -40,18 +40,18 @@ def import_plugins(dirpath=None):
             plugin_names.append(name)
         except (ImportError, AttributeError) as err:
             # if we aren't successful, print a warning
-            print(
-                "WARNING: %s: %s" % (plugin_filename, err), file=sys.stderr
-            )
+            print("WARNING: %s: %s" % (plugin_filename, err), file=sys.stderr)
     return plugin_names
+
 
 __all__ = import_plugins()
 
 
 # Helper functions for munkirepo plugins
 
+
 def plugin_named(some_name):
-    '''Returns a plugin object given a name'''
+    """Returns a plugin object given a name"""
     try:
         return globals()[some_name]
     except (KeyError, AttributeError):
@@ -60,9 +60,9 @@ def plugin_named(some_name):
 
 
 def connect(repo_url, plugin_name):
-    '''Return a repo object for operations on our Munki repo'''
-    plugin = plugin_named(plugin_name or 'FileRepo')
+    """Return a repo object for operations on our Munki repo"""
+    plugin = plugin_named(plugin_name or "FileRepo")
     if plugin:
         return plugin(repo_url)
     else:
-        raise RepoError('Could not find repo plugin named: %s' % plugin_name)
+        raise RepoError("Could not find repo plugin named: %s" % plugin_name)

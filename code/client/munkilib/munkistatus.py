@@ -32,43 +32,46 @@ import time
 from Foundation import NSDistributedNotificationCenter
 from Foundation import NSNotificationDeliverImmediately
 from Foundation import NSNotificationPostToAllSessions
+
 # pylint: enable=E0611
 
 # we use lots of camelCase-style names. Deal with it.
 # pylint: disable=C0103
 
 # our NSDistributedNotification identifier
-NOTIFICATION_ID = 'com.googlecode.munki.managedsoftwareupdate.statusUpdate'
+NOTIFICATION_ID = "com.googlecode.munki.managedsoftwareupdate.statusUpdate"
 
 # keep our current status. We keep this so that notification clients
 # that come "online" late can get current state
 _currentStatus = {}
 
+
 def initStatusDict():
-    '''Initialize our status dictionary'''
+    """Initialize our status dictionary"""
     global _currentStatus
     _currentStatus = {
-        'message': '',
-        'detail': '',
-        'percent': -1,
-        'stop_button_visible': True,
-        'stop_button_enabled': True,
-        'command': '',
-        'pid': os.getpid()
+        "message": "",
+        "detail": "",
+        "percent": -1,
+        "stop_button_visible": True,
+        "stop_button_enabled": True,
+        "command": "",
+        "pid": os.getpid(),
     }
 
+
 def launchMunkiStatus():
-    '''Uses launchd KeepAlive path so it launches from a launchd agent
+    """Uses launchd KeepAlive path so it launches from a launchd agent
     in the correct context.
     This is more complicated to set up, but makes Apple (and launchservices)
     happier.
     There needs to be a launch agent that is triggered when the launchfile
-    is created; and that launch agent then runs MunkiStatus.app.'''
+    is created; and that launch agent then runs MunkiStatus.app."""
     initStatusDict()
 
     launchfile = "/var/run/com.googlecode.munki.MunkiStatus"
     try:
-        open(launchfile, 'w').close()
+        open(launchfile, "w").close()
     except (OSError, IOError):
         pass
     time.sleep(0.1)
@@ -77,85 +80,86 @@ def launchMunkiStatus():
 
 
 def postStatusNotification():
-    '''Post a status notification'''
+    """Post a status notification"""
     dnc = NSDistributedNotificationCenter.defaultCenter()
     dnc.postNotificationName_object_userInfo_options_(
         NOTIFICATION_ID,
         None,
         _currentStatus,
-        NSNotificationDeliverImmediately + NSNotificationPostToAllSessions)
+        NSNotificationDeliverImmediately + NSNotificationPostToAllSessions,
+    )
 
 
 def message(messageText):
-    '''Sets the status message.'''
-    _currentStatus['message'] = messageText
+    """Sets the status message."""
+    _currentStatus["message"] = messageText
     postStatusNotification()
 
 
 def detail(detailsText):
-    '''Sets the detail text.'''
-    _currentStatus['detail'] = detailsText
+    """Sets the detail text."""
+    _currentStatus["detail"] = detailsText
     postStatusNotification()
 
 
 def percent(percentage):
-    '''Sets the progress indicator to 0-100 percent done.
+    """Sets the progress indicator to 0-100 percent done.
     If you pass a negative number, the progress indicator
-    is shown as an indeterminate indicator (barber pole).'''
-    _currentStatus['percent'] = percentage
+    is shown as an indeterminate indicator (barber pole)."""
+    _currentStatus["percent"] = percentage
     postStatusNotification()
 
 
 def hideStopButton():
-    '''Hides the stop button.'''
-    _currentStatus['stop_button_visible'] = False
+    """Hides the stop button."""
+    _currentStatus["stop_button_visible"] = False
     postStatusNotification()
 
 
 def showStopButton():
-    '''Shows the stop button.'''
-    _currentStatus['stop_button_visible'] = True
+    """Shows the stop button."""
+    _currentStatus["stop_button_visible"] = True
     postStatusNotification()
 
 
 def disableStopButton():
-    '''Disables (grays out) the stop button.'''
-    _currentStatus['stop_button_enabled'] = False
+    """Disables (grays out) the stop button."""
+    _currentStatus["stop_button_enabled"] = False
     postStatusNotification()
 
 
 def enableStopButton():
-    '''Enables the stop button.'''
-    _currentStatus['stop_button_enabled'] = True
+    """Enables the stop button."""
+    _currentStatus["stop_button_enabled"] = True
     postStatusNotification()
 
 
 def activate():
-    '''Brings MunkiStatus window to the front.'''
-    _currentStatus['command'] = 'activate'
+    """Brings MunkiStatus window to the front."""
+    _currentStatus["command"] = "activate"
     postStatusNotification()
     # now clear the command; unlike the other fields, this
     # should not persist between notifications
-    _currentStatus['command'] = ''
+    _currentStatus["command"] = ""
 
 
 def quit_app():
-    '''Tells the status app that we're done.'''
-    _currentStatus['command'] = 'quit'
+    """Tells the status app that we're done."""
+    _currentStatus["command"] = "quit"
     postStatusNotification()
     # now clear the command; unlike the other fields, this
     # should not persist between notifications
-    _currentStatus['command'] = ''
+    _currentStatus["command"] = ""
 
 
 def restartAlert():
-    '''Tells MunkiStatus to display a restart alert.'''
-    _currentStatus['command'] = 'showRestartAlert'
+    """Tells MunkiStatus to display a restart alert."""
+    _currentStatus["command"] = "showRestartAlert"
     postStatusNotification()
     # now clear the command; unlike the other fields, this
     # should not persist between notifications
-    _currentStatus['command'] = ''
+    _currentStatus["command"] = ""
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")

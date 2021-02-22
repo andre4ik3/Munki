@@ -35,6 +35,7 @@ import time
 # No name 'Foo' in module 'Bar' warnings. Disable them.
 # pylint: disable=E0611
 from SystemConfiguration import SCDynamicStoreCopyConsoleUser
+
 # pylint: enable=E0611
 
 from . import display
@@ -57,10 +58,15 @@ def getOsVersion(only_major_minor=True, as_tuple=False):
     # reading /System/Library/CoreServices/SystemVersion.plist is unreliable.
     # So let's use a different method.
     try:
-        os_version_tuple = subprocess.check_output(
-            ('/usr/bin/sw_vers', '-productVersion'),
-            env={'SYSTEM_VERSION_COMPAT': '0'}
-        ).decode('UTF-8').rstrip().split('.')
+        os_version_tuple = (
+            subprocess.check_output(
+                ("/usr/bin/sw_vers", "-productVersion"),
+                env={"SYSTEM_VERSION_COMPAT": "0"},
+            )
+            .decode("UTF-8")
+            .rstrip()
+            .split(".")
+        )
     except subprocess.CalledProcessError:
         os_version_tuple = platform.mac_ver()[0].split(".")
     if only_major_minor:
@@ -73,25 +79,25 @@ def getOsVersion(only_major_minor=True, as_tuple=False):
     if as_tuple:
         return tuple(map(int, os_version_tuple))
     # default
-    return '.'.join(os_version_tuple)
+    return ".".join(os_version_tuple)
 
 
 def tmpdir():
-    '''Returns a temporary directory for this session'''
-    if not hasattr(tmpdir, 'cache'):
-        tmpdir.cache = tempfile.mkdtemp(prefix='munki-', dir='/tmp')
+    """Returns a temporary directory for this session"""
+    if not hasattr(tmpdir, "cache"):
+        tmpdir.cache = tempfile.mkdtemp(prefix="munki-", dir="/tmp")
     return tmpdir.cache
 
 
 def cleanUpTmpDir():
     """Cleans up our temporary directory."""
-    if hasattr(tmpdir, 'cache'):
+    if hasattr(tmpdir, "cache"):
         try:
             shutil.rmtree(tmpdir.cache)
         except (OSError, IOError) as err:
             display.display_warning(
-                'Unable to clean up temporary dir %s: %s',
-                tmpdir.cache, str(err))
+                "Unable to clean up temporary dir %s: %s", tmpdir.cache, str(err)
+            )
         del tmpdir.cache
 
 
@@ -118,7 +124,7 @@ def listdir(path):
     # pylint: disable=unicode-builtin
     if isinstance(path, str):
         try:
-            path = unicode(path, 'utf-8')
+            path = unicode(path, "utf-8")
         except NameError:
             # Python 3
             pass
@@ -136,18 +142,22 @@ def getconsoleuser():
 def currentGUIusers():
     """Gets a list of GUI users by parsing the output of /usr/bin/who"""
     gui_users = []
-    proc = subprocess.Popen('/usr/bin/who', shell=False,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        "/usr/bin/who",
+        shell=False,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     output = proc.communicate()[0].decode("UTF-8")
     lines = output.splitlines()
     for line in lines:
-        if 'console' in line:
+        if "console" in line:
             parts = line.split()
             gui_users.append(parts[0])
 
     # 10.11 sometimes has a phantom '_mbsetupuser' user. Filter it out.
-    users_to_ignore = ['_mbsetupuser']
+    users_to_ignore = ["_mbsetupuser"]
     gui_users = [user for user in gui_users if user not in users_to_ignore]
 
     return gui_users
@@ -155,10 +165,14 @@ def currentGUIusers():
 
 def pythonScriptRunning(scriptname):
     """Returns Process ID for a running python script"""
-    cmd = ['/bin/ps', '-eo', 'pid=,command=']
-    proc = subprocess.Popen(cmd, shell=False,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cmd = ["/bin/ps", "-eo", "pid=,command="]
+    proc = subprocess.Popen(
+        cmd,
+        shell=False,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     out = proc.communicate()[0].decode("UTF-8")
     mypid = os.getpid()
     lines = str(out).splitlines()
@@ -172,8 +186,7 @@ def pythonScriptRunning(scriptname):
             args = process.split()
             try:
                 # first look for Python processes
-                if (args[0].find('MacOS/Python') != -1 or
-                        args[0].find('python') != -1):
+                if args[0].find("MacOS/Python") != -1 or args[0].find("python") != -1:
                     # look for first argument being scriptname
                     if args[1].find(scriptname) != -1:
                         try:
@@ -191,56 +204,62 @@ def pythonScriptRunning(scriptname):
 
 def osascript(osastring):
     """Wrapper to run AppleScript commands"""
-    cmd = ['/usr/bin/osascript', '-e', osastring]
-    proc = subprocess.Popen(cmd, shell=False,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cmd = ["/usr/bin/osascript", "-e", osastring]
+    proc = subprocess.Popen(
+        cmd,
+        shell=False,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     (out, err) = proc.communicate()
     if proc.returncode != 0:
-        print('Error: ', err.decode('UTF-8'), file=sys.stderr)
+        print("Error: ", err.decode("UTF-8"), file=sys.stderr)
     if out:
-        return out.decode('UTF-8').rstrip('\n')
-    return u''
+        return out.decode("UTF-8").rstrip("\n")
+    return u""
 
 
 def bridgeos_update_staged():
-    '''Checks an undocumented nvram variable to see if a bridgeOS update
+    """Checks an undocumented nvram variable to see if a bridgeOS update
     has been staged. If so, we should shut down instead of restart.
-    Returns a boolean.'''
+    Returns a boolean."""
     cmd = ["/usr/sbin/nvram", "BOSUpdateStarted"]
-    proc = subprocess.Popen(cmd,
-                            shell=False,
-                            bufsize=-1,
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    output = proc.communicate()[0].decode('UTF-8')
+    proc = subprocess.Popen(
+        cmd,
+        shell=False,
+        bufsize=-1,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    output = proc.communicate()[0].decode("UTF-8")
     if proc.returncode == 0:
         munkilog.log("nvram output: %s" % output)
         lines = output.splitlines()
         parts = lines[0].split()
         try:
-            timestamp = int(parts[1].split(',')[0])
+            timestamp = int(parts[1].split(",")[0])
             now = int(time.time())
             seconds_ago = now - timestamp
             if seconds_ago < 60 * 60:
                 munkilog.log(
                     "bridgeOS update staged %s seconds ago; shutdown required"
-                    % seconds_ago)
+                    % seconds_ago
+                )
                 return True
-            #else
+            # else
             munkilog.log(
-                "bridgeOS update %s seconds ago; too long ago to trust"
-                % seconds_ago)
+                "bridgeOS update %s seconds ago; too long ago to trust" % seconds_ago
+            )
             return False
         except (IndexError, ValueError):
-            munkilog.log(
-                "unexpected nvram output, can't detect bridgeos update")
+            munkilog.log("unexpected nvram output, can't detect bridgeos update")
             return False
-    #else
+    # else
     munkilog.log("No bridgeOS update staged")
     return False
 
 
-if __name__ == '__main__':
-    print('This is a library of support tools for the Munki Suite.')
+if __name__ == "__main__":
+    print("This is a library of support tools for the Munki Suite.")
