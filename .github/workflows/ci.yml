@@ -29,6 +29,7 @@ jobs:
 
   analyze:
     name: Analyze
+    needs: lint
     runs-on: ubuntu-latest
 
     strategy:
