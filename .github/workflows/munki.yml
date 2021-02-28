@@ -7,7 +7,6 @@ on:
     branches: [ universal2 ]
 
 jobs:
-
   lint:
     name: Syntax Check
     runs-on: ubuntu-latest
