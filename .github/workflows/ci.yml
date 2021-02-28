@@ -1,4 +1,4 @@
-name: Munki
+name: CI
 
 on:
   push:
@@ -26,6 +26,27 @@ jobs:
 
     - name: Lint
       run: git diff HEAD^ | flake8 --diff --ignore=E501
+
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript', 'python' ]
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
 
   build:
     name: Build Package
