@@ -926,24 +926,49 @@ for pkg in $ALLPKGS ; do
     fi
 
     if [ "$SCRIPTS" != "" ]; then
-        sudo /usr/bin/pkgbuild \
-            --root "$PKGTMP/munki_$pkg" \
-            --identifier "$PKGID.$pkg" \
-            --version "$ver" \
-            --ownership preserve \
-            --info "$PKGTMP/info_$pkg" \
-            --component-plist "${PKGTMP}/munki_${pkg}_component.plist" \
-            --scripts "$SCRIPTS" \
-            "$PKGDEST/munkitools_$pkg.pkg"
+        if [ "$PKGSIGNINGCERT" != "" ]; then
+            sudo /usr/bin/pkgbuild \
+                --root "$PKGTMP/munki_$pkg" \
+                --identifier "$PKGID.$pkg" \
+                --version "$ver" \
+                --ownership preserve \
+                --info "$PKGTMP/info_$pkg" \
+                --component-plist "${PKGTMP}/munki_${pkg}_component.plist" \
+                --scripts "$SCRIPTS" \
+                --sign "$PKGSIGNINGCERT" \
+                "$PKGDEST/munkitools_$pkg.pkg"
+        else
+            sudo /usr/bin/pkgbuild \
+                --root "$PKGTMP/munki_$pkg" \
+                --identifier "$PKGID.$pkg" \
+                --version "$ver" \
+                --ownership preserve \
+                --info "$PKGTMP/info_$pkg" \
+                --component-plist "${PKGTMP}/munki_${pkg}_component.plist" \
+                --scripts "$SCRIPTS" \
+                "$PKGDEST/munkitools_$pkg.pkg"
+        fi
     else
-        sudo /usr/bin/pkgbuild \
-            --root "$PKGTMP/munki_$pkg" \
-            --identifier "$PKGID.$pkg" \
-            --version "$ver" \
-            --ownership preserve \
-            --info "$PKGTMP/info_$pkg" \
-            --component-plist "${PKGTMP}/munki_${pkg}_component.plist" \
-            "$PKGDEST/munkitools_$pkg.pkg"
+        if [ "$PKGSIGNINGCERT" != "" ]; then
+            sudo /usr/bin/pkgbuild \
+                --root "$PKGTMP/munki_$pkg" \
+                --identifier "$PKGID.$pkg" \
+                --version "$ver" \
+                --ownership preserve \
+                --info "$PKGTMP/info_$pkg" \
+                --component-plist "${PKGTMP}/munki_${pkg}_component.plist" \
+                --sign "$PKGSIGNINGCERT" \
+                "$PKGDEST/munkitools_$pkg.pkg"
+        else
+            sudo /usr/bin/pkgbuild \
+                --root "$PKGTMP/munki_$pkg" \
+                --identifier "$PKGID.$pkg" \
+                --version "$ver" \
+                --ownership preserve \
+                --info "$PKGTMP/info_$pkg" \
+                --component-plist "${PKGTMP}/munki_${pkg}_component.plist" \
+                "$PKGDEST/munkitools_$pkg.pkg"
+        fi
     fi
 
     cp "$PKGDEST/munkitools_$pkg.pkg" "$OUTPUTDIR/munkitools_$pkg-$ver.pkg"
