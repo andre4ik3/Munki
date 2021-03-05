@@ -48,10 +48,10 @@ ADDITIONAL_HTTP_HEADERS_KEY = "AdditionalHttpHeaders"
 LOGINWINDOW = "/System/Library/CoreServices/loginwindow.app/Contents/MacOS/loginwindow"
 
 CHECKANDINSTALLATSTARTUPFLAG = (
-    "/Users/Shared/.com.googlecode.munki.checkandinstallatstartup"
+    "/Users/Shared/.dev.andre4ik3.managed.munki.checkandinstallatstartup"
 )
-INSTALLATSTARTUPFLAG = "/Users/Shared/.com.googlecode.munki.installatstartup"
-INSTALLATLOGOUTFLAG = "/private/tmp/com.googlecode.munki.installatlogout"
+INSTALLATSTARTUPFLAG = "/Users/Shared/.dev.andre4ik3.managed.munki.installatstartup"
+INSTALLATLOGOUTFLAG = "/private/tmp/dev.andre4ik3.managed.munki.installatlogout"
 
 # postinstall actions
 POSTACTION_NONE = 0

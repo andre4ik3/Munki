@@ -202,7 +202,7 @@ class Gurl(NSObject):
     # initWithOptions_(), so:
     # pylint: disable=E1101,W0201
 
-    GURL_XATTR = "com.googlecode.munki.downloadData"
+    GURL_XATTR = "dev.andre4ik3.managed.munki.downloadData"
 
     def initWithOptions_(self, options):
         """Set up our Gurl object"""

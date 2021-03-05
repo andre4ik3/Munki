@@ -10,7 +10,7 @@
 #import "AppDelegate.h"
 #import <objc/runtime.h>
 
-NSString * const ManagedSoftwareCenterBundleID = @"com.googlecode.munki.ManagedSoftwareCenter";
+NSString * const ManagedSoftwareCenterBundleID = @"dev.andre4ik3.managed.munki.msc";
 NSString * const NotificationCenterUIBundleID = @"com.apple.notificationcenterui";
 NSString * const MunkiNotificationURL = @"munki://notify";
 long const DefaultUseNotificationCenterDays = 3;

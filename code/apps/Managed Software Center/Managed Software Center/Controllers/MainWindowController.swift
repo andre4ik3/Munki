@@ -532,7 +532,7 @@ class MainWindowController: NSWindowController, NSWindowDelegate, WKNavigationDe
         nc.addObserver(self,
                        selector: #selector(self.updateAvailableUpdates(_:)),
                        name: NSNotification.Name(
-                            rawValue: "com.googlecode.munki.managedsoftwareupdate.updateschanged"),
+                            rawValue: "dev.andre4ik3.managed.munki.msu.updateschanged"),
                        object: nil,
                        suspensionBehavior: .deliverImmediately)
         //register for notification to display a logout warning
@@ -540,7 +540,7 @@ class MainWindowController: NSWindowController, NSWindowDelegate, WKNavigationDe
         nc.addObserver(self,
                        selector: #selector(self.forcedLogoutWarning(_:)),
                        name: NSNotification.Name(
-                            rawValue: "com.googlecode.munki.ManagedSoftwareUpdate.logoutwarn"),
+                            rawValue: "dev.andre4ik3.managed.munki.ManagedSoftwareUpdate.logoutwarn"),
                        object: nil,
                        suspensionBehavior: .deliverImmediately)
     }
@@ -897,7 +897,7 @@ class MainWindowController: NSWindowController, NSWindowDelegate, WKNavigationDe
          that are changed in one page view to be reflected
          immediately in all page views */
         // TO-DO: figure this out for WKWebView
-        /*let identifier = "com.googlecode.munki.ManagedSoftwareCenter"
+        /*let identifier = "dev.andre4ik3.managed.munki.msc"
         if let prefs = WebPreferences(identifier: identifier) {
             prefs.usesPageCache = false
             webView.preferencesIdentifier = identifier
@@ -1081,7 +1081,7 @@ class MainWindowController: NSWindowController, NSWindowDelegate, WKNavigationDe
             }
             stop_requested = true
             // send a notification that stop button was clicked
-            let stop_request_flag_file = "/private/tmp/com.googlecode.munki.managedsoftwareupdate.stop_requested"
+            let stop_request_flag_file = "/private/tmp/dev.andre4ik3.managed.munki.msu.stop_requested"
             if !FileManager.default.fileExists(atPath: stop_request_flag_file) {
                 FileManager.default.createFile(atPath: stop_request_flag_file, contents: nil, attributes: nil)
             }

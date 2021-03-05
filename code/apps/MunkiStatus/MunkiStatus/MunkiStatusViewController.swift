@@ -22,7 +22,7 @@ class MunkiStatusViewController: NSViewController {
     var sawProcess = false
     var timer: Timer? = nil
     
-    let STOP_REQUEST_FLAG = "/private/tmp/com.googlecode.munki.managedsoftwareupdate.stop_requested"
+    let STOP_REQUEST_FLAG = "/private/tmp/dev.andre4ik3.managed.munki.msu.stop_requested"
     
     override func viewDidLoad() {
         if #available(OSX 10.10, *) {
@@ -157,7 +157,7 @@ class MunkiStatusViewController: NSViewController {
     
     @objc func updateStatus(_ notification: Notification) {
         // Called when we get a
-        // com.googlecode.munki.managedsoftwareupdate.statusUpdate notification;
+        // dev.andre4ik3.managed.munki.msu.statusUpdate notification;
         // update our status display with information from the notification
         gotStatusUpdate = true
         let info = notification.userInfo
@@ -216,7 +216,7 @@ class MunkiStatusViewController: NSViewController {
         dnc.addObserver(
             self,
             selector: #selector(self.updateStatus(_:)),
-            name: NSNotification.Name(rawValue: "com.googlecode.munki.managedsoftwareupdate.statusUpdate"),
+            name: NSNotification.Name(rawValue: "dev.andre4ik3.managed.munki.msu.statusUpdate"),
             object: nil,
             suspensionBehavior: .deliverImmediately)
         

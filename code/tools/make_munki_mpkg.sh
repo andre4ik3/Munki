@@ -4,7 +4,7 @@
 
 
 # Defaults.
-PKGID="com.googlecode.munki"
+PKGID="dev.andre4ik3.managed.munki"
 MUNKIROOT="."
 # Convert to absolute path.
 MUNKIROOT=$(cd "$MUNKIROOT"; pwd)
@@ -634,7 +634,7 @@ if [ "$BOOTSTRAPPKG" == "YES" ] ;  then
     mkdir -m 1775 "$BOOTSTRAPROOT"
     mkdir -p "$BOOTSTRAPROOT/Users/Shared"
     # Create bootstrap flag file
-    touch "$BOOTSTRAPROOT/Users/Shared/.com.googlecode.munki.checkandinstallatstartup"
+    touch "$BOOTSTRAPROOT/Users/Shared/.dev.andre4ik3.managed.munki.checkandinstallatstartup"
 
     # copy in bootstrap cleanup scripts
     if [ -d "$MUNKIROOT/code/tools/pkgresources/bootstrap_cleanup_scripts/" ] ; then
@@ -945,6 +945,8 @@ for pkg in $ALLPKGS ; do
             --component-plist "${PKGTMP}/munki_${pkg}_component.plist" \
             "$PKGDEST/munkitools_$pkg.pkg"
     fi
+
+    cp "$PKGDEST/munkitools_$pkg.pkg" "$OUTPUTDIR/munkitools_$pkg-$ver.pkg"
 
     if [ "$?" -ne 0 ]; then
         echo "Error building munkitools_$pkg.pkg."

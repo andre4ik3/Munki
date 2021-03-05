@@ -68,7 +68,7 @@ except ImportError:
     # CoreFoundation/Foundation isn't available
     FOUNDATION_SUPPORT = False
 
-BUNDLE_ID = "com.googlecode.munki.munkiimport"
+BUNDLE_ID = "dev.andre4ik3.managed.munki.munkiimport"
 PREFSNAME = BUNDLE_ID + ".plist"
 PREFSPATH = os.path.expanduser(os.path.join("~/Library/Preferences", PREFSNAME))
 
@@ -79,9 +79,9 @@ if FOUNDATION_SUPPORT:
         Preferences can be defined several places. Precedence is:
             - MCX/Configuration Profile
             - ~/Library/Preferences/ByHost/
-                com.googlecode.munki.munkiimport.XX.plist
-            - ~/Library/Preferences/com.googlecode.munki.munkiimport.plist
-            - /Library/Preferences/com.googlecode.munki.munkiimport.plist
+                dev.andre4ik3.managed.munki.munkiimport.XX.plist
+            - ~/Library/Preferences/dev.andre4ik3.managed.munki.munkiimport.plist
+            - /Library/Preferences/dev.andre4ik3.managed.munki.munkiimport.plist
         """
         return CFPreferencesCopyAppValue(prefname, BUNDLE_ID)
 

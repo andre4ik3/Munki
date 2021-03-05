@@ -8,7 +8,7 @@
 
 import Foundation
 
-let MSULOGDIR = "/Users/Shared/.com.googlecode.munki.ManagedSoftwareUpdate.logs"
+let MSULOGDIR = "/Users/Shared/.dev.andre4ik3.managed.munki.ManagedSoftwareUpdate.logs"
 // TO-DO: eliminate these global vars
 var MSULOGFILE = ""
 var MSULOGENABLED = false

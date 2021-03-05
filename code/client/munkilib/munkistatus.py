@@ -39,7 +39,7 @@ from Foundation import NSNotificationPostToAllSessions
 # pylint: disable=C0103
 
 # our NSDistributedNotification identifier
-NOTIFICATION_ID = "com.googlecode.munki.managedsoftwareupdate.statusUpdate"
+NOTIFICATION_ID = "dev.andre4ik3.managed.munki.msu.statusUpdate"
 
 # keep our current status. We keep this so that notification clients
 # that come "online" late can get current state
@@ -69,7 +69,7 @@ def launchMunkiStatus():
     is created; and that launch agent then runs MunkiStatus.app."""
     initStatusDict()
 
-    launchfile = "/var/run/com.googlecode.munki.MunkiStatus"
+    launchfile = "/var/run/dev.andre4ik3.managed.munki.status"
     try:
         open(launchfile, "w").close()
     except (OSError, IOError):

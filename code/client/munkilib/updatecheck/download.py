@@ -497,7 +497,7 @@ def uncache(space_needed_in_kb):
             )
 
 
-PRECACHING_AGENT_LABEL = "com.googlecode.munki.precache_agent"
+PRECACHING_AGENT_LABEL = "dev.andre4ik3.managed.munki.precache_agent"
 
 
 def run_precaching_agent():

@@ -11,8 +11,8 @@ import Foundation
 import OpenDirectory
 
 
-let INSTALLATSTARTUPFILE = "/Users/Shared/.com.googlecode.munki.installatstartup"
-let CHECKANDINSTALLATSTARTUPFILE = "/Users/Shared/.com.googlecode.munki.checkandinstallatstartup"
+let INSTALLATSTARTUPFILE = "/Users/Shared/.dev.andre4ik3.managed.munki.installatstartup"
+let CHECKANDINSTALLATSTARTUPFILE = "/Users/Shared/.dev.andre4ik3.managed.munki.checkandinstallatstartup"
 
 func writeInstallAtStartupFlagFile(skipAppleUpdates: Bool = true) {
     // writes out a file to trigger Munki to install Munki updates at next restart or logout

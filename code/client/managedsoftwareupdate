@@ -340,12 +340,12 @@ def doFinishingTasks(runtype=None):
 
 def startLogoutHelper():
     """Handle the need for a forced logout. Start our logouthelper"""
-    cmd = ['/bin/launchctl', 'start', 'com.googlecode.munki.logouthelper']
+    cmd = ['/bin/launchctl', 'start', 'dev.andre4ik3.managed.munki.logouthelper']
     result = subprocess.call(cmd)
     if result:
         # some problem with the launchd job
         display.display_error(
-            'Could not start com.googlecode.munki.logouthelper')
+            'Could not start dev.andre4ik3.managed.munki.logouthelper')
 
 
 def doRestart(shutdown=False):
@@ -472,7 +472,7 @@ def sendUpdateNotification():
     MSU.app registers to receive these events.'''
     userInfo = {'pid': os.getpid()}
     sendDistributedNotification(
-        'com.googlecode.munki.managedsoftwareupdate.updateschanged',
+        'dev.andre4ik3.managed.munki.msu.updateschanged',
         userInfo)
 
 
@@ -481,7 +481,7 @@ def sendDockUpdateNotification():
     MSU.app's docktileplugin registers to receive these events.'''
     userInfo = {'pid': os.getpid()}
     sendDistributedNotification(
-        'com.googlecode.munki.managedsoftwareupdate.dock.updateschanged',
+        'dev.andre4ik3.managed.munki.msu.dock.updateschanged',
         userInfo)
 
 
@@ -489,7 +489,7 @@ def sendStartNotification():
     '''Sends a start notification via NSDistributedNotificationCenter'''
     userInfo = {'pid': os.getpid()}
     sendDistributedNotification(
-        'com.googlecode.munki.managedsoftwareupdate.started',
+        'dev.andre4ik3.managed.munki.msu.started',
         userInfo)
 
 
@@ -497,7 +497,7 @@ def sendEndNotification():
     '''Sends an ended notification via NSDistributedNotificationCenter'''
     userInfo = {'pid': os.getpid()}
     sendDistributedNotification(
-        'com.googlecode.munki.managedsoftwareupdate.ended',
+        'dev.andre4ik3.managed.munki.msu.ended',
         userInfo)
 
 
@@ -544,7 +544,7 @@ def notifyUserOfUpdates(force=False):
 
         # notify user of available updates using LaunchAgent to launch
         # munki-notifier.app in the user context.
-        launchfile = '/var/run/com.googlecode.munki.munki-notifier'
+        launchfile = '/var/run/dev.andre4ik3.managed.munki.notifier'
         f = open(launchfile, 'w')
         f.close()
         time.sleep(5)
@@ -579,10 +579,10 @@ def remove_launchd_logout_jobs_and_exit():
     These jobs will be reloaded the next time we're in the loginwindow context.
     """
     munkistatus.quit_app()
-    cmd = ["/bin/launchctl", "remove", "com.googlecode.munki.MunkiStatus"]
+    cmd = ["/bin/launchctl", "remove", "dev.andre4ik3.managed.munki.status"]
     subprocess.call(cmd)
     cmd = ["/bin/launchctl", "remove",
-           "com.googlecode.munki.managedsoftwareupdate-loginwindow"]
+           "dev.andre4ik3.managed.munki.msu-loginwindow"]
     subprocess.call(cmd)
     sys.exit(0)
 
@@ -790,7 +790,7 @@ def main():
         # typically invoked by Managed Software Center.app
         # by user who decides not to logout
         launchdtriggerfile = \
-            '/private/tmp/.com.googlecode.munki.managedinstall.launchd'
+            '/private/tmp/.dev.andre4ik3.managed.munki.managedinstall.launchd'
         if os.path.exists(launchdtriggerfile):
             munkilog.log(
                 "managedsoftwareupdate run triggered by %s"
@@ -807,7 +807,7 @@ def main():
     if options.manualcheck:
         # triggered by Managed Software Center.app
         launchdtriggerfile = \
-            '/private/tmp/.com.googlecode.munki.updatecheck.launchd'
+            '/private/tmp/.dev.andre4ik3.managed.munki.updatecheck.launchd'
         if os.path.exists(launchdtriggerfile):
             munkilog.log(
                 "managedsoftwareupdate run triggered by %s"

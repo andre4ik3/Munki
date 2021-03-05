@@ -4,7 +4,7 @@
 
 
 # Defaults.
-PKGID="com.googlecode.munki"
+PKGID="dev.andre4ik3.managed.munki"
 OUTPUTDIR="$(pwd)"
 CHECKOUTREV="HEAD"
 BRANCH="main"

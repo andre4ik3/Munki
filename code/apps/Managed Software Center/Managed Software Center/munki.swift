@@ -13,9 +13,9 @@ import IOKit
 
 typealias PlistDict = [String:Any]
 
-let INSTALLATLOGOUTFILE = "/private/tmp/com.googlecode.munki.installatlogout"
-let UPDATECHECKLAUNCHFILE = "/private/tmp/.com.googlecode.munki.updatecheck.launchd"
-let INSTALLWITHOUTLOGOUTFILE = "/private/tmp/.com.googlecode.munki.managedinstall.launchd"
+let INSTALLATLOGOUTFILE = "/private/tmp/dev.andre4ik3.managed.munki.installatlogout"
+let UPDATECHECKLAUNCHFILE = "/private/tmp/.dev.andre4ik3.managed.munki.updatecheck.launchd"
+let INSTALLWITHOUTLOGOUTFILE = "/private/tmp/.dev.andre4ik3.managed.munki.managedinstall.launchd"
 
 let BUNDLE_ID = "ManagedInstalls" as CFString
 let DEFAULT_GUI_CACHE_AGE_SECS = 3600

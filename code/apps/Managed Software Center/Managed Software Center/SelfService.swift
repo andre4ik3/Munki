@@ -21,7 +21,7 @@ func post_install_request_notification(_ event: String, _ item: GenericItem) {
     ]
     let dnc = DistributedNotificationCenter.default()
     dnc.post(
-        name: NSNotification.Name(rawValue: "com.googlecode.munki.managedsoftwareupdate.installrequest"),
+        name: NSNotification.Name(rawValue: "dev.andre4ik3.managed.munki.msu.installrequest"),
         object: nil,
         userInfo: user_info
     )

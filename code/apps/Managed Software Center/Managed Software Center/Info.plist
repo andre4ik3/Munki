@@ -24,7 +24,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.googlecode.munki</string>
+			<string>dev.andre4ik3.managed.munki</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>munki</string>

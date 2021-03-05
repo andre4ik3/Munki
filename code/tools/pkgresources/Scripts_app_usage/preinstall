@@ -10,8 +10,8 @@ export PATH=/usr/bin:/bin:/usr/sbin:/sbin
 if [ "$3" == "/" ]; then
 
     # Run preinstall actions for root.
-    launchctl unload /Library/LaunchDaemons/com.googlecode.munki.app_usage_monitor.plist
-    launchctl unload /Library/LaunchDaemons/com.googlecode.munki.appusaged.plist
+    launchctl unload /Library/LaunchDaemons/dev.andre4ik3.managed.munki.app_usage_monitor.plist
+    launchctl unload /Library/LaunchDaemons/dev.andre4ik3.managed.munki.appusaged.plist
 
     # Run preinstall actions for all logged in users.
     os_build_version=$(sw_vers -buildVersion | cut -b 1-2)
@@ -19,9 +19,9 @@ if [ "$3" == "/" ]; then
         pid=$(echo $pid_uid | cut -d, -f1)
         uid=$(echo $pid_uid | cut -d, -f2)
         if [[ $os_build_version -lt 14 ]] ; then
-            launchctl bsexec "$pid" chroot -u "$uid" / launchctl unload /Library/LaunchAgents/com.googlecode.munki.app_usage_monitor.plist
+            launchctl bsexec "$pid" chroot -u "$uid" / launchctl unload /Library/LaunchAgents/dev.andre4ik3.managed.munki.app_usage_monitor.plist
         else
-            launchctl asuser "$uid" launchctl unload /Library/LaunchAgents/com.googlecode.munki.app_usage_monitor.plist
+            launchctl asuser "$uid" launchctl unload /Library/LaunchAgents/dev.andre4ik3.managed.munki.app_usage_monitor.plist
         fi
     done
 

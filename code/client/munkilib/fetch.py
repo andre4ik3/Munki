@@ -68,9 +68,9 @@ from .gurl import Gurl
 # pylint: disable=C0103
 
 # XATTR name storing the ETAG of the file when downloaded via http(s).
-XATTR_ETAG = "com.googlecode.munki.etag"
+XATTR_ETAG = "dev.andre4ik3.managed.munki.etag"
 # XATTR name storing the sha256 of the file after original download by munki.
-XATTR_SHA = "com.googlecode.munki.sha256"
+XATTR_SHA = "dev.andre4ik3.managed.munki.sha256"
 
 # default value for User-Agent header
 munki_version = info.get_version()

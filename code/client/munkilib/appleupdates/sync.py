@@ -152,7 +152,7 @@ LOCAL_CATALOG_NAME = "local_install.sucatalog"
 
 # extended attribute name for storing the OS version when the sucatalog was
 # downloaded
-XATTR_OS_VERS = "com.googlecode.munki.os_version"
+XATTR_OS_VERS = "dev.andre4ik3.managed.munki.os_version"
 
 
 class Error(Exception):

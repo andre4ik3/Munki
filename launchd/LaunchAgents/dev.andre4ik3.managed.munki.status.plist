@@ -12,7 +12,7 @@
 			<true/>
 			<key>/private/tmp/dev.andre4ik3.managed.munki.installatlogout</key>
 			<true/>
-			<key>/var/run/dev.andre4ik3.managed.munki.MunkiStatus</key>
+			<key>/var/run/dev.andre4ik3.managed.munki.status</key>
 			<true/>
 		</dict>
 	</dict>

@@ -439,7 +439,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/MunkiStatus/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				PRODUCT_BUNDLE_IDENTIFIER = com.googlecode.munki.MunkiStatus;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.andre4ik3.managed.munki.status;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -458,7 +458,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/MunkiStatus/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				PRODUCT_BUNDLE_IDENTIFIER = com.googlecode.munki.MunkiStatus;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.andre4ik3.managed.munki.status;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;

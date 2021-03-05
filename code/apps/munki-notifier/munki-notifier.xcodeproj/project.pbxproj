@@ -416,7 +416,7 @@
 				INFOPLIST_FILE = "munki-notifier/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.googlecode.munki.munki-notifier";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.andre4ik3.managed.munki.notifier";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -430,7 +430,7 @@
 				INFOPLIST_FILE = "munki-notifier/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.googlecode.munki.munki-notifier";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.andre4ik3.managed.munki.notifier";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
