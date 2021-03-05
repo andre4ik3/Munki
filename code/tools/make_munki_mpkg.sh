@@ -971,6 +971,10 @@ for pkg in $ALLPKGS ; do
         fi
     fi
 
+    if ! rm -rf "munkitools_$pkg-*.pkg" ; then
+        echo "WARNING: Cannot remove already existing munkitools_$pkg.pkg"
+    fi
+
     cp "$PKGDEST/munkitools_$pkg.pkg" "$OUTPUTDIR/munkitools_$pkg-$ver.pkg"
 
     if [ "$?" -ne 0 ]; then
@@ -988,7 +992,7 @@ echo
 # build distribution pkg from the components
 # Sign package if specified with options.
 if [ "$PKGSIGNINGCERT" != "" ]; then
-     /usr/bin/productbuild \
+    /usr/bin/productbuild \
         --distribution "$DISTFILE" \
         --package-path "$METAROOT" \
         --resources "$METAROOT/Resources" \
