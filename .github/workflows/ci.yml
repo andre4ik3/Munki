@@ -60,8 +60,15 @@ jobs:
       - name: Build
         run: ./code/tools/make_munki_mpkg.sh -i dev.andre4ik3.managed.munki
 
-      - name: Upload Artifact
+      - name: Upload Munkitools MPKG
         uses: actions/upload-artifact@v2
         with:
-          name: munkitools
-          path: ./munkitools*.pkg
+          name: Munkitools (Unified MPKG)
+          path: ./munkitools-*.pkg
+
+      - name: Upload Munkitools PKGs
+        uses: actions/upload-artifact@v2
+        with:
+          name: Munkitools (Separate PKGs)
+          path: ./munkitools_*-*.pkg
+
