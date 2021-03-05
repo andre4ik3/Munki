@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.googlecode.munki.authrestartd</string>
+	<string>dev.andre4ik3.managed.munki.authrestartd</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/munki/authrestartd</string>

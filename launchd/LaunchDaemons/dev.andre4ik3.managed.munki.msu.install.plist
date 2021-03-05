@@ -6,12 +6,12 @@
 	<dict>
 		<key>PathState</key>
 		<dict>
-			<key>/private/tmp/.com.googlecode.munki.updatecheck.launchd</key>
+			<key>/private/tmp/.dev.andre4ik3.managed.munki.managedinstall.launchd</key>
 			<true/>
 		</dict>
 	</dict>
 	<key>Label</key>
-	<string>com.googlecode.munki.managedsoftwareupdate-manualcheck</string>
+	<string>dev.andre4ik3.managed.munki.msu.install</string>
 	<key>OnDemand</key>
 	<true/>
 	<key>ProgramArguments</key>
@@ -21,7 +21,7 @@
 		<string>43200</string>
 		<string>--</string>
 		<string>/usr/local/munki/managedsoftwareupdate</string>
-		<string>--manualcheck</string>
+		<string>--installwithnologout</string>
 	</array>
 </dict>
 </plist>

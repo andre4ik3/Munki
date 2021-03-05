@@ -39,7 +39,7 @@ static void updateCount(NSDockTile *tile) {
 - (void)setDockTile:(NSDockTile *)dockTile {
     if (dockTile) {
         // Attach an observer that will update the count in the dock tile whenever it changes
-	    self.updateObserver = [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"com.googlecode.munki.managedsoftwareupdate.dock.updateschanged" object:nil queue:nil usingBlock:^(NSNotification *notification) {
+	    self.updateObserver = [[NSDistributedNotificationCenter defaultCenter] addObserverForName:@"dev.andre4ik3.managed.munki.msu.dock.updateschanged" object:nil queue:nil usingBlock:^(NSNotification *notification) {
 	    updateCount(dockTile);	// Note that this block captures (and retains) dockTile for use later. Also note that it does not capture self, which means -dealloc may be called even while the notification is active. Although it's not clear this needs to be supported, this does eliminate a potential source of leaks.
 	}];
         updateCount(dockTile);	// Make sure count is updated as soon as we are invoked

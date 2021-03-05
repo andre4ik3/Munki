@@ -189,7 +189,7 @@ def force_logout_now():
             del users["root"]
 
         # force MSU GUI to raise
-        fileref = open("/private/tmp/com.googlecode.munki.installatlogout", "w")
+        fileref = open("/private/tmp/dev.andre4ik3.managed.munki.installatlogout", "w")
         fileref.close()
 
         # kill loginwindows to cause logout of current users, whether
@@ -216,7 +216,7 @@ def stop_requested():
     if _STOP_REQUESTED:
         return True
     stop_request_flag = (
-        "/private/tmp/" "com.googlecode.munki.managedsoftwareupdate.stop_requested"
+        "/private/tmp/" "dev.andre4ik3.managed.munki.msu.stop_requested"
     )
     if os.path.exists(stop_request_flag):
         # store this so it's persistent until this session is over

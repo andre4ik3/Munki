@@ -136,7 +136,7 @@ class NotificationHandler(NSObject):
         self.dnc = NSDistributedNotificationCenter.defaultCenter()
         self.dnc.addObserver_selector_name_object_(
             self, 'requestedItemForInstall:',
-            'com.googlecode.munki.managedsoftwareupdate.installrequest', None)
+            'dev.andre4ik3.managed.munki.msu.installrequest', None)
 
         return self # NOTE: Unlike Python, NSObject's init() must return self!
 
@@ -201,7 +201,7 @@ class NotificationHandler(NSObject):
         self.usage.process({'event': 'quit', 'app_dict': app_dict})
 
     def requestedItemForInstall_(self, notification):
-        """Handle com.googlecode.munki.managedsoftwareupdate.installrequest"""
+        """Handle dev.andre4ik3.managed.munki.msu.installrequest"""
         logging.info('got install request notification')
         user_info = notification.userInfo()
         self.usage.process(

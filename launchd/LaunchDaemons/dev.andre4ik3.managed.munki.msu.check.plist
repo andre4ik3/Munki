@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.googlecode.munki.managedsoftwareupdate-check</string>
+	<string>dev.andre4ik3.managed.munki.msu.check</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/munki/supervisor</string>

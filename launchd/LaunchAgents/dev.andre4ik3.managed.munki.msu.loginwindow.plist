@@ -6,14 +6,20 @@
 	<dict>
 		<key>PathState</key>
 		<dict>
-			<key>/private/tmp/.com.googlecode.munki.managedinstall.launchd</key>
+			<key>/Users/Shared/.dev.andre4ik3.managed.munki.checkandinstallatstartup</key>
+			<true/>
+			<key>/Users/Shared/.dev.andre4ik3.managed.munki.installatstartup</key>
+			<true/>
+			<key>/private/tmp/dev.andre4ik3.managed.munki.installatlogout</key>
 			<true/>
 		</dict>
 	</dict>
 	<key>Label</key>
-	<string>com.googlecode.munki.managedsoftwareupdate-install</string>
-	<key>OnDemand</key>
-	<true/>
+	<string>dev.andre4ik3.managed.munki.msu.loginwindow</string>
+	<key>LimitLoadToSessionType</key>
+	<array>
+		<string>LoginWindow</string>
+	</array>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/munki/supervisor</string>
@@ -21,7 +27,7 @@
 		<string>43200</string>
 		<string>--</string>
 		<string>/usr/local/munki/managedsoftwareupdate</string>
-		<string>--installwithnologout</string>
+		<string>--logoutinstall</string>
 	</array>
 </dict>
 </plist>

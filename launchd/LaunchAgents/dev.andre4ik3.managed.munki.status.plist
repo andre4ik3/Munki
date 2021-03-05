@@ -6,18 +6,18 @@
 	<dict>
 		<key>PathState</key>
 		<dict>
-			<key>/Users/Shared/.com.googlecode.munki.checkandinstallatstartup</key>
+			<key>/Users/Shared/.dev.andre4ik3.managed.munki.checkandinstallatstartup</key>
 			<true/>
-			<key>/Users/Shared/.com.googlecode.munki.installatstartup</key>
+			<key>/Users/Shared/.dev.andre4ik3.managed.munki.installatstartup</key>
 			<true/>
-			<key>/private/tmp/com.googlecode.munki.installatlogout</key>
+			<key>/private/tmp/dev.andre4ik3.managed.munki.installatlogout</key>
 			<true/>
-			<key>/var/run/com.googlecode.munki.MunkiStatus</key>
+			<key>/var/run/dev.andre4ik3.managed.munki.MunkiStatus</key>
 			<true/>
 		</dict>
 	</dict>
 	<key>Label</key>
-	<string>com.googlecode.munki.MunkiStatus</string>
+	<string>dev.andre4ik3.managed.munki.status</string>
 	<key>LimitLoadToSessionType</key>
 	<array>
 		<string>LoginWindow</string>

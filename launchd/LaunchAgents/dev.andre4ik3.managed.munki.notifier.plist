@@ -6,12 +6,12 @@
 	<dict>
 		<key>PathState</key>
 		<dict>
-			<key>/var/run/com.googlecode.munki.ManagedSoftwareCenter</key>
+			<key>/var/run/dev.andre4ik3.managed.munki.notifier</key>
 			<true/>
 		</dict>
 	</dict>
 	<key>Label</key>
-	<string>com.googlecode.munki.ManagedSoftwareCenter</string>
+	<string>dev.andre4ik3.managed.munki.notifier</string>
 	<key>LimitLoadToSessionType</key>
 	<array>
 		<string>Aqua</string>
@@ -20,7 +20,7 @@
 	<array>
 		<string>/usr/local/munki/launchapp</string>
 		<string>-a</string>
-		<string>/Applications/Managed Software Center.app</string>
+		<string>/Applications/Managed Software Center.app/Contents/Resources/munki-notifier.app</string>
 	</array>
 </dict>
 </plist>

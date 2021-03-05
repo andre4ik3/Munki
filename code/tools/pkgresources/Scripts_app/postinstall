@@ -6,9 +6,9 @@ export PATH=/usr/bin:/bin:/usr/sbin:/sbin
 MSC_APP="/Applications/Managed Software Center.app"
 
 if [ "$3" == "/" ]; then
-    if [ -e /tmp/com.googlecode.munki.relaunch_msc_app ] ; then
-        FRONTMOST=$(cat /tmp/com.googlecode.munki.relaunch_msc_app)
-        rm /tmp/com.googlecode.munki.relaunch_msc_app
+    if [ -e /tmp/dev.andre4ik3.managed.munki.relaunch_msc_app ] ; then
+        FRONTMOST=$(cat /tmp/dev.andre4ik3.managed.munki.relaunch_msc_app)
+        rm /tmp/dev.andre4ik3.managed.munki.relaunch_msc_app
         if [ "$FRONTMOST" == "frontmost" ] ; then
             OPENCMD="open -a"
         else

@@ -162,7 +162,7 @@ class Job(object):
             tmpdir = tempfile.mkdtemp(prefix="munki.launchd-", dir="/tmp")
 
         # label this job
-        self.label = job_label or "com.googlecode.munki." + str(uuid.uuid1())
+        self.label = job_label or "dev.andre4ik3.managed.munki." + str(uuid.uuid1())
 
         self.cleanup_at_exit = cleanup_at_exit
         self.stdout_path = os.path.join(tmpdir, self.label + ".stdout")

@@ -7,16 +7,16 @@ if [ `id -u` -ne 0 ]; then
     exit 1
 fi
 
-launchctl unload /Library/LaunchDaemons/com.googlecode.munki.*
+launchctl unload /Library/LaunchDaemons/dev.andre4ik3.managed.munki.*
 rm -rf '/Applications/Utilities/Managed Software Update.app'
 rm -rf '/Applications/Managed Software Center.app'
-rm -f /Library/LaunchDaemons/com.googlecode.munki.*
-rm -f /Library/LaunchAgents/com.googlecode.munki.*
+rm -f /Library/LaunchDaemons/dev.andre4ik3.managed.munki.*
+rm -f /Library/LaunchAgents/dev.andre4ik3.managed.munki.*
 rm -rf '/Library/Managed Installs'
 rm -rf /usr/local/munki
-pkgutil --forget com.googlecode.munki.core
-pkgutil --forget com.googlecode.munki.admin
-pkgutil --forget com.googlecode.munki.app
-pkgutil --forget com.googlecode.munki.launchd
-pkgutil --forget com.googlecode.munki.app_status
-pkgutil --forget com.googlecode.munki
+pkgutil --forget dev.andre4ik3.managed.munki.core
+pkgutil --forget dev.andre4ik3.managed.munki.admin
+pkgutil --forget dev.andre4ik3.managed.munki.app
+pkgutil --forget dev.andre4ik3.managed.munki.launchd
+pkgutil --forget dev.andre4ik3.managed.munki.app_status
+pkgutil --forget dev.andre4ik3.managed.munki

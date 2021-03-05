@@ -5,7 +5,7 @@
 	<key>KeepAlive</key>
 	<true/>
 	<key>Label</key>
-	<string>com.googlecode.munki.app_usage_monitor</string>
+	<string>dev.andre4ik3.managed.munki.appusage</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/munki/app_usage_monitor</string>

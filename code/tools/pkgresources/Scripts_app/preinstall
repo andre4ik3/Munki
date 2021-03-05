@@ -10,15 +10,15 @@ if [ "$3" == "/" ]; then
     if [ "$CONSOLEUSER" != "" ] ; then
         # is the console user running MSC.app and is it in front?
         FRONT_APPID=$(lsappinfo info -only bundleid $(lsappinfo front) | cut -d= -f2 | cut -d\" -f2)
-        if [ "$FRONT_APPID" == "com.googlecode.munki.ManagedSoftwareCenter" ] ; then
+        if [ "$FRONT_APPID" == "dev.andre4ik3.managed.munki.msc" ] ; then
             # leave a flag that tells us to relaunch and bring to front
-            echo "frontmost" >> /tmp/com.googlecode.munki.relaunch_msc_app
+            echo "frontmost" >> /tmp/dev.andre4ik3.managed.munki.relaunch_msc_app
         else
             # is the console user running MSC.app at all?
             killall -s -u "$CONSOLEUSER" "$MSC_APP_NAME" &>/dev/null
             if [ $? -eq 0 ] ; then
                 # leave a flag that tells us to relaunch and not bring to front
-                echo "not frontmost" >> /tmp/com.googlecode.munki.relaunch_msc_app
+                echo "not frontmost" >> /tmp/dev.andre4ik3.managed.munki.relaunch_msc_app
             fi
         fi
     fi
