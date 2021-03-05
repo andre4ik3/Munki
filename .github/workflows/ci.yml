@@ -64,4 +64,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: munkitools
-          path: ./munkitools-*.*.*.*.pkg
+          path: ./munkitools*.pkg
