@@ -18,6 +18,7 @@ MAGICNUMBER=482
 BUILDPYTHON=NO
 PKGSIGNINGCERT=""
 APPSIGNINGCERT=""
+APPDIR=""
 BOOTSTRAPPKG=NO
 CONFPKG=NO
 MDMSTYLE=NO
@@ -61,12 +62,14 @@ Usage: $(basename "$0") [-i id] [-r root] [-o dir] [-c package] [-s cert]
     -S cert_cn  Sign apps with a Developer ID Application certificate from
                 keychain. Provide the certificate's Common Name.
                 Ex: "Developer ID Application: Munki (U8PN57A5N2)"
+    -a dir      Specify the folder where to look for Munki apps. This is useful
+                if you want to manually build them and potentially notarize (!)
 
 EOF
 }
 
 
-while getopts "i:r:o:n:c:s:S:pBmhR" option
+while getopts "i:r:o:n:c:s:S:a:pBmhR" option
 do
     case $option in
         "i")
@@ -90,6 +93,9 @@ do
             ;;
         "S")
             APPSIGNINGCERT="$OPTARG"
+            ;;
+        "a")
+            APPDIR="$OPTARG"
             ;;
         "p")
             BUILDPYTHON=YES
@@ -122,6 +128,13 @@ if [ ! -d "$MUNKIROOT" ]; then
 else
     # Convert to absolute path.
     MUNKIROOT=$(cd "$MUNKIROOT"; pwd)
+fi
+
+if [ ! -d "$APPDIR" ]; then
+    echo "Please set a valid apps dir" 1>&2
+    exit 1
+else
+    APPDIR=$(cd "$APPDIR"; pwd)
 fi
 
 if [ ! -d "$OUTPUTDIR" ]; then
@@ -183,6 +196,8 @@ if [ "$BUILDPYTHON" == "YES" ] || [ ! -d "$MUNKIROOT/Python.framework" ]; then
     if ! "${PYTHONBUILDTOOL}" ; then
         echo "Building Python.framework failed!" 1>&2
         exit 1
+    elif [ "$APPSIGNINGCERT" != "" ]; then
+        /usr/bin/codesign --deep --force -s "$APPSIGNINGCERT" --options runtime --verbose Python.framework
     fi
 fi
 
@@ -289,17 +304,20 @@ echo
 
 # Build Managed Software Center.
 echo "Building Managed Software Update.xcodeproj..."
-pushd "$MUNKIROOT/code/apps/Managed Software Center" > /dev/null
-/usr/bin/xcodebuild -project "Managed Software Center.xcodeproj" -alltargets clean > /dev/null
-/usr/bin/xcodebuild -project "Managed Software Center.xcodeproj" -alltargets build > /dev/null
-XCODEBUILD_RESULT="$?"
-popd > /dev/null
-if [ "$XCODEBUILD_RESULT" -ne 0 ]; then
-    echo "Error building Managed Software Center.app: $XCODEBUILD_RESULT"
-    exit 2
+if [ "$APPDIR" == "" ]; then
+    pushd "$MUNKIROOT/code/apps/Managed Software Center" > /dev/null
+    /usr/bin/xcodebuild -project "Managed Software Center.xcodeproj" -alltargets clean > /dev/null
+    /usr/bin/xcodebuild -project "Managed Software Center.xcodeproj" -alltargets build > /dev/null
+    XCODEBUILD_RESULT="$?"
+    popd > /dev/null
+    if [ "$XCODEBUILD_RESULT" -ne 0 ]; then
+        echo "Error building Managed Software Center.app: $XCODEBUILD_RESULT"
+        exit 2
+    fi
+    MSCAPP="$MUNKIROOT/code/apps/Managed Software Center/build/Release/Managed Software Center.app"
+else
+    MSCAPP="$APPDIR/Managed Software Center.app"
 fi
-
-MSCAPP="$MUNKIROOT/code/apps/Managed Software Center/build/Release/Managed Software Center.app"
 if [ ! -e "$MSCAPP" ]; then
     echo "Need a release build of Managed Software Center.app!"
     echo "Open the Xcode project $MUNKIROOT/code/apps/Managed Software Center/Managed Software Center.xcodeproj and build it."
@@ -311,18 +329,21 @@ fi
 
 # Build MunkiStatus
 echo "Building MunkiStatus.xcodeproj..."
-pushd "$MUNKIROOT/code/apps/MunkiStatus" > /dev/null
-/usr/bin/xcodebuild -project "MunkiStatus.xcodeproj" -alltargets clean > /dev/null
-/usr/bin/xcodebuild -project "MunkiStatus.xcodeproj" -alltargets build > /dev/null
-XCODEBUILD_RESULT="$?"
-popd > /dev/null
-if [ "$XCODEBUILD_RESULT" -ne 0 ]; then
-    echo "Error building MunkiStatus.app: $XCODEBUILD_RESULT"
-    exit 2
+if [ "$APPDIR" == "" ]; then
+    pushd "$MUNKIROOT/code/apps/MunkiStatus" > /dev/null
+    /usr/bin/xcodebuild -project "MunkiStatus.xcodeproj" -alltargets clean > /dev/null
+    /usr/bin/xcodebuild -project "MunkiStatus.xcodeproj" -alltargets build > /dev/null
+    XCODEBUILD_RESULT="$?"
+    popd > /dev/null
+    if [ "$XCODEBUILD_RESULT" -ne 0 ]; then
+        echo "Error building MunkiStatus.app: $XCODEBUILD_RESULT"
+        exit 2
+    fi
+    MSAPP="$MUNKIROOT/code/apps/MunkiStatus/build/Release/MunkiStatus.app"
+else
+    MSAPP="$APPDIR/Managed Software Center.app/Contents/Resources/MunkiStatus.app"
 fi
-
-MSAPP="$MUNKIROOT/code/apps/MunkiStatus/build/Release/MunkiStatus.app"
-if [ ! -e  "$MSAPP" ]; then
+if [ ! -e "$MSAPP" ]; then
     echo "Need a release build of MunkiStatus.app!"
     echo "Open the Xcode project $MUNKIROOT/code/apps/MunkiStatus/MunkiStatus.xcodeproj and build it."
     exit 2
@@ -333,18 +354,21 @@ fi
 
 # Build munki-notifier
 echo "Building munki-notifier.xcodeproj..."
-pushd "$MUNKIROOT/code/apps/munki-notifier" > /dev/null
-/usr/bin/xcodebuild -project "munki-notifier.xcodeproj" -alltargets clean > /dev/null
-/usr/bin/xcodebuild -project "munki-notifier.xcodeproj" -alltargets build > /dev/null
-XCODEBUILD_RESULT="$?"
-popd > /dev/null
-if [ "$XCODEBUILD_RESULT" -ne 0 ]; then
-    echo "Error building munki-notifier.app: $XCODEBUILD_RESULT"
-    exit 2
+if [ "$APPDIR" == "" ]; then
+    pushd "$MUNKIROOT/code/apps/munki-notifier" > /dev/null
+    /usr/bin/xcodebuild -project "munki-notifier.xcodeproj" -alltargets clean > /dev/null
+    /usr/bin/xcodebuild -project "munki-notifier.xcodeproj" -alltargets build > /dev/null
+    XCODEBUILD_RESULT="$?"
+    popd > /dev/null
+    if [ "$XCODEBUILD_RESULT" -ne 0 ]; then
+        echo "Error building munki-notifier.app: $XCODEBUILD_RESULT"
+        exit 2
+    fi
+    NOTIFIERAPP="$MUNKIROOT/code/apps/munki-notifier/build/Release/munki-notifier.app"
+else
+    NOTIFIERAPP="$APPDIR/Managed Software Center.app/Contents/Resources/munki-notifier.app"
 fi
-
-NOTIFIERAPP="$MUNKIROOT/code/apps/munki-notifier/build/Release/munki-notifier.app"
-if [ ! -e  "$NOTIFIERAPP" ]; then
+if [ ! -e "$NOTIFIERAPP" ]; then
     echo "Need a release build of munki-notifier.app!"
     echo "Open the Xcode project $MUNKIROOT/code/apps/notifier/munki-notifier.xcodeproj and build it."
     exit 2
@@ -491,15 +515,17 @@ mkdir -m 1775 "$APPROOT"
 mkdir -m 775 "$APPROOT/Applications"
 # Copy Managed Software Center application.
 cp -R "$MSCAPP" "$APPROOT/Applications/"
-# Copy MunkiStatus helper app
-cp -R "$MSAPP" "$APPROOT/Applications/Managed Software Center.app/Contents/Resources/"
-# Copy notifier helper app
-cp -R "$NOTIFIERAPP" "$APPROOT/Applications/Managed Software Center.app/Contents/Resources/"
+if [ "$APPDIR" == "" ]; then
+    # Copy MunkiStatus helper app
+    cp -R "$MSAPP" "$APPROOT/Applications/Managed Software Center.app/Contents/Resources/"
+    # Copy notifier helper app
+    cp -R "$NOTIFIERAPP" "$APPROOT/Applications/Managed Software Center.app/Contents/Resources/"
+fi
 # make sure not writeable by group or other
 chmod -R go-w "$APPROOT/Applications/Managed Software Center.app"
 
 # sign MSC app
-if [ "$APPSIGNINGCERT" != "" ]; then
+if [ "$APPSIGNINGCERT" != "" ] && [ "$APPDIR" == "" ]; then
     echo "Signing Managed Software Center.app..."
     /usr/bin/codesign -f -s "$APPSIGNINGCERT" --options runtime --verbose \
         "$APPROOT/Applications/Managed Software Center.app/Contents/PlugIns/MSCDockTilePlugin.docktileplugin" \
