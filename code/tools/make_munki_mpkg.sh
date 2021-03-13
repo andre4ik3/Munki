@@ -130,7 +130,7 @@ else
     MUNKIROOT=$(cd "$MUNKIROOT"; pwd)
 fi
 
-if [ ! -d "$APPDIR" ]; then
+if [ ! -d "$APPDIR" ] && [ "$APPDIR" != "" ]; then
     echo "Please set a valid apps dir" 1>&2
     exit 1
 else
