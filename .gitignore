@@ -11,3 +11,8 @@ code/apps/MunkiStatus/build/
 # ignore any pkgs build by tool scripts
 munkitools*.pkg
 Python.framework
+apps/**
+
+# ignore xcworkspace data
+munki.xcworkspace/xcuserdata
+munki.xcworkspace/xcshareddata

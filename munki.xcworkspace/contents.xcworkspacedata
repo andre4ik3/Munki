@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:code/apps/MunkiStatus/MunkiStatus.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:code/apps/munki-notifier/munki-notifier.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:code/apps/Managed Software Center/Managed Software Center.xcodeproj">
+   </FileRef>
+</Workspace>
