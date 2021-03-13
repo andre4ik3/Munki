@@ -15,4 +15,4 @@ apps/**
 
 # ignore xcworkspace data
 munki.xcworkspace/xcuserdata
-munki.xcworkspace/xcshareddata
+
