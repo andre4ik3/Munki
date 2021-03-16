@@ -52,7 +52,7 @@ jobs:
   build:
     name: Build Package
     needs: lint
-    runs-on: macos-11.0
+    runs-on: macos-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -71,4 +71,3 @@ jobs:
         with:
           name: Munkitools (Separate PKGs)
           path: ./munkitools_*-*.pkg
-
