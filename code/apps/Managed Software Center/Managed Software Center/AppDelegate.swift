@@ -53,7 +53,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDele
         statusController.registerForNotifications()
         
         // user may have launched the app manually, or it may have
-        // been launched by /usr/local/munki/managedsoftwareupdate
+        // been launched by /opt/munki/managedsoftwareupdate
         // to display available updates, or via a munki: URL
         if !launchedViaURL {
             var lastcheck = pref("LastCheckDate") as? Date ?? Date.distantPast

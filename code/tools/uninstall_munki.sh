@@ -13,7 +13,7 @@ rm -rf '/Applications/Managed Software Center.app'
 rm -f /Library/LaunchDaemons/dev.andre4ik3.managed.munki.*
 rm -f /Library/LaunchAgents/dev.andre4ik3.managed.munki.*
 rm -rf '/Library/Managed Installs'
-rm -rf /usr/local/munki
+rm -rf /opt/munki
 pkgutil --forget dev.andre4ik3.managed.munki.core
 pkgutil --forget dev.andre4ik3.managed.munki.admin
 pkgutil --forget dev.andre4ik3.managed.munki.app

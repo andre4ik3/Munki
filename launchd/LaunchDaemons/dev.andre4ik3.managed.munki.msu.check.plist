@@ -6,13 +6,13 @@
 	<string>dev.andre4ik3.managed.munki.msu.check</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/local/munki/supervisor</string>
+		<string>/opt/munki/supervisor</string>
 		<string>--delayrandom</string>
 		<string>3600</string>
 		<string>--timeout</string>
 		<string>43200</string>
 		<string>--</string>
-		<string>/usr/local/munki/managedsoftwareupdate</string>
+		<string>/opt/munki/managedsoftwareupdate</string>
 		<string>--auto</string>
 	</array>
 	<key>StartCalendarInterval</key>

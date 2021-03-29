@@ -1,4 +1,4 @@
-#!/usr/local/munki/munki-python
+#!/opt/munki/munki-python
 # encoding: utf-8
 #
 # Copyright 2010-2021 Greg Neagle.

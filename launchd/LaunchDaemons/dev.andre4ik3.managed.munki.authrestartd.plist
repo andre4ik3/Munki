@@ -6,7 +6,7 @@
 	<string>dev.andre4ik3.managed.munki.authrestartd</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/local/munki/authrestartd</string>
+		<string>/opt/munki/authrestartd</string>
 	</array>
 	<key>Sockets</key>
 	<dict>

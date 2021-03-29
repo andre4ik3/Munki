@@ -513,7 +513,7 @@ def run_precaching_agent():
     precache_agent_path = os.path.join(parent_dir, "precache_agent")
     if not os.path.exists(precache_agent_path):
         # try absolute path in Munki's normal install dir
-        precache_agent_path = "/usr/local/munki/precache_agent"
+        precache_agent_path = "/opt/munki/precache_agent"
     if os.path.exists(precache_agent_path):
         display.display_info("Starting precaching agent")
         display.display_debug1("Launching precache_agent from %s", precache_agent_path)

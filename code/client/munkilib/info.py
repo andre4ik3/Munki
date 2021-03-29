@@ -819,7 +819,7 @@ def valid_plist(path):
 @utils.Memoize
 def get_conditions():
     """Fetches key/value pairs from condition scripts
-    which can be placed into /usr/local/munki/conditions"""
+    which can be placed into /opt/munki/conditions"""
     # define path to conditions directory which would contain
     # admin created scripts
     scriptdir = os.path.realpath(os.path.dirname(sys.argv[0]))
@@ -854,7 +854,7 @@ def get_conditions():
             except utils.RunExternalScriptError as err:
                 print(unicode_or_str(err), file=sys.stderr)
     else:
-        # /usr/local/munki/conditions does not exist
+        # /opt/munki/conditions does not exist
         pass
     if os.path.exists(conditionalitemspath) and valid_plist(conditionalitemspath):
         # import conditions into conditions dict

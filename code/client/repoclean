@@ -423,7 +423,7 @@ class RepoCleaner(object):
         makecatalogs_path = os.path.join(mydir, 'makecatalogs')
         if not os.path.exists(makecatalogs_path):
             # didn't find it; assume the default install path
-            makecatalogs_path = '/usr/local/munki/makecatalogs'
+            makecatalogs_path = '/opt/munki/makecatalogs'
         print('Rebuilding catalogs at %s...' % self.options.repo_url)
         cmd = [makecatalogs_path]
         cmd.append('--repo-url')

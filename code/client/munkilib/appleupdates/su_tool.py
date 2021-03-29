@@ -52,7 +52,7 @@ def find_ptty_tool():
     ptyexec_path = os.path.join(parent_dir, "ptyexec")
     if not os.path.exists(ptyexec_path):
         # try absolute path in munki's normal install dir
-        ptyexec_path = "/usr/local/munki/ptyexec"
+        ptyexec_path = "/opt/munki/ptyexec"
     if os.path.exists(ptyexec_path):
         cmd = [ptyexec_path]
     else:

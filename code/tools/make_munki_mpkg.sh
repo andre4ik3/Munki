@@ -407,7 +407,7 @@ PKGTMP=$(mktemp -d -t munkipkg)
 
 #########################################
 ## core munki tools                    ##
-## /usr/local/munki, minus admin tools ##
+## /opt/munki, minus admin tools ##
 ## plus /Library/Managed Installs      ##
 #########################################
 echo
@@ -416,37 +416,37 @@ echo "Creating core package template..."
 # Create directory structure.
 COREROOT="$PKGTMP/munki_core"
 mkdir -m 1775 "$COREROOT"
-mkdir -p "$COREROOT/usr/local/munki/munkilib"
+mkdir -p "$COREROOT/opt/munki/munkilib"
 chmod -R 755 "$COREROOT/usr"
 # Copy command line utilities.
 # edit this if list of tools changes!
 for TOOL in authrestartd launchapp logouthelper managedsoftwareupdate supervisor precache_agent ptyexec removepackages
 do
-    cp -X "$MUNKIROOT/code/client/$TOOL" "$COREROOT/usr/local/munki/" 2>&1
+    cp -X "$MUNKIROOT/code/client/$TOOL" "$COREROOT/opt/munki/" 2>&1
 done
 # Copy python libraries.
-#cp -X "$MUNKIROOT/code/client/munkilib/"*.py "$COREROOT/usr/local/munki/munkilib/"
-rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/client/munkilib/" "$COREROOT/usr/local/munki/munkilib/"
+#cp -X "$MUNKIROOT/code/client/munkilib/"*.py "$COREROOT/opt/munki/munkilib/"
+rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/client/munkilib/" "$COREROOT/opt/munki/munkilib/"
 # Copy munki version.
-cp -X "$MUNKIROOT/code/client/munkilib/version.plist" "$COREROOT/usr/local/munki/munkilib/"
+cp -X "$MUNKIROOT/code/client/munkilib/version.plist" "$COREROOT/opt/munki/munkilib/"
 # svnversion file was used when we were using subversion
 # we don't need this file if we have an updated get_version method in munkicommon.py
 if [ "$SVNREV" -lt "1302" ]; then
-    echo $SVNREV > "$COREROOT/usr/local/munki/munkilib/svnversion"
+    echo $SVNREV > "$COREROOT/opt/munki/munkilib/svnversion"
 fi
 
 # add Build Number and Git Revision to version.plist
-/usr/libexec/PlistBuddy -c "Delete :BuildNumber" "$COREROOT/usr/local/munki/munkilib/version.plist" 2>/dev/null
-/usr/libexec/PlistBuddy -c "Add :BuildNumber string $SVNREV" "$COREROOT/usr/local/munki/munkilib/version.plist"
-/usr/libexec/PlistBuddy -c "Delete :GitRevision" "$COREROOT/usr/local/munki/munkilib/version.plist" 2>/dev/null
-/usr/libexec/PlistBuddy -c "Add :GitRevision string $GITREV" "$COREROOT/usr/local/munki/munkilib/version.plist"
+/usr/libexec/PlistBuddy -c "Delete :BuildNumber" "$COREROOT/opt/munki/munkilib/version.plist" 2>/dev/null
+/usr/libexec/PlistBuddy -c "Add :BuildNumber string $SVNREV" "$COREROOT/opt/munki/munkilib/version.plist"
+/usr/libexec/PlistBuddy -c "Delete :GitRevision" "$COREROOT/opt/munki/munkilib/version.plist" 2>/dev/null
+/usr/libexec/PlistBuddy -c "Add :GitRevision string $GITREV" "$COREROOT/opt/munki/munkilib/version.plist"
 # Set permissions.
-chmod -R go-w "$COREROOT/usr/local/munki"
-chmod +x "$COREROOT/usr/local/munki"
+chmod -R go-w "$COREROOT/opt/munki"
+chmod +x "$COREROOT/opt/munki"
 
 # make paths.d file
 mkdir -p "$COREROOT/private/etc/paths.d"
-echo "/usr/local/munki" > "$COREROOT/private/etc/paths.d/100-munki"
+echo "/opt/munki" > "$COREROOT/private/etc/paths.d/100-munki"
 chmod -R 755 "$COREROOT/private"
 chmod 744 "$COREROOT/private/etc/paths.d/munki"
 
@@ -459,7 +459,7 @@ mkdir -m 755 -p "$COREROOT/Library/Managed Installs/manifests"
 
 # copy in core cleanup scripts
 if [ -d "$MUNKIROOT/code/tools/pkgresources/core_cleanup_scripts/" ] ; then
-    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/core_cleanup_scripts/" "$COREROOT/usr/local/munki/cleanup/"
+    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/core_cleanup_scripts/" "$COREROOT/opt/munki/cleanup/"
 fi
 
 # Create package info file.
@@ -468,7 +468,7 @@ makeinfo core "$PKGTMP/info" norestart
 
 #########################################
 ## admin munki tools                   ##
-## /usr/local/munki admin tools        ##
+## /opt/munki admin tools        ##
 #########################################
 
 echo "Creating admin package source..."
@@ -476,27 +476,27 @@ echo "Creating admin package source..."
 # Create directory structure.
 ADMINROOT="$PKGTMP/munki_admin"
 mkdir -m 1775 "$ADMINROOT"
-mkdir -p "$ADMINROOT/usr/local/munki"
+mkdir -p "$ADMINROOT/opt/munki"
 chmod -R 755 "$ADMINROOT/usr"
 # Copy command line admin utilities.
 # edit this if list of tools changes!
 for TOOL in makecatalogs makepkginfo manifestutil munkiimport iconimporter repoclean
 do
-	cp -X "$MUNKIROOT/code/client/$TOOL" "$ADMINROOT/usr/local/munki/" 2>&1
+	cp -X "$MUNKIROOT/code/client/$TOOL" "$ADMINROOT/opt/munki/" 2>&1
 done
 # Set permissions.
-chmod -R go-w "$ADMINROOT/usr/local/munki"
-chmod +x "$ADMINROOT/usr/local/munki"
+chmod -R go-w "$ADMINROOT/opt/munki"
+chmod +x "$ADMINROOT/opt/munki"
 
 # make paths.d file
 mkdir -p "$ADMINROOT/private/etc/paths.d"
-echo "/usr/local/munki" > "$ADMINROOT/private/etc/paths.d/munki"
+echo "/opt/munki" > "$ADMINROOT/private/etc/paths.d/munki"
 chmod -R 755 "$ADMINROOT/private"
 chmod 644 "$ADMINROOT/private/etc/paths.d/munki"
 
 # copy in admin cleanup scripts
 if [ -d "$MUNKIROOT/code/tools/pkgresources/admin_cleanup_scripts/" ] ; then
-    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/admin_cleanup_scripts/" "$ADMINROOT/usr/local/munki/cleanup/"
+    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/admin_cleanup_scripts/" "$ADMINROOT/opt/munki/cleanup/"
 fi
 
 # Create package info file.
@@ -541,7 +541,7 @@ fi
 
 # copy in app cleanup scripts
 if [ -d "$MUNKIROOT/code/tools/pkgresources/app_cleanup_scripts/" ] ; then
-    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/app_cleanup_scripts/" "$APPROOT/usr/local/munki/cleanup/"
+    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/app_cleanup_scripts/" "$APPROOT/opt/munki/cleanup/"
 fi
 
 # Create package info file.
@@ -573,7 +573,7 @@ fi
 
 # copy in launchd cleanup scripts
 if [ -d "$MUNKIROOT/code/tools/pkgresources/launchd_cleanup_scripts/" ] ; then
-    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/launchd_cleanup_scripts/" "$LAUNCHDROOT/usr/local/munki/cleanup/"
+    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/launchd_cleanup_scripts/" "$LAUNCHDROOT/opt/munki/cleanup/"
 fi
 
 makeinfo launchd "$PKGTMP/info" "$RESTARTFLAG"
@@ -591,7 +591,7 @@ mkdir -m 1775 "$APPUSAGEROOT"
 mkdir -m 1775 "$APPUSAGEROOT/Library"
 mkdir -m 755 "$APPUSAGEROOT/Library/LaunchAgents"
 mkdir -m 755 "$APPUSAGEROOT/Library/LaunchDaemons"
-mkdir -p "$APPUSAGEROOT/usr/local/munki"
+mkdir -p "$APPUSAGEROOT/opt/munki"
 chmod -R 755 "$APPUSAGEROOT/usr"
 # Copy launch agent, launch daemon, daemon, and agent
 # LaunchAgent
@@ -604,15 +604,15 @@ chmod 644 "$APPUSAGEROOT/Library/LaunchDaemons/"*
 # edit this if list of tools changes!
 for TOOL in appusaged app_usage_monitor
 do
-	cp -X "$MUNKIROOT/code/client/$TOOL" "$APPUSAGEROOT/usr/local/munki/" 2>&1
+	cp -X "$MUNKIROOT/code/client/$TOOL" "$APPUSAGEROOT/opt/munki/" 2>&1
 done
 # Set permissions.
-chmod -R go-w "$APPUSAGEROOT/usr/local/munki"
-chmod +x "$APPUSAGEROOT/usr/local/munki"
+chmod -R go-w "$APPUSAGEROOT/opt/munki"
+chmod +x "$APPUSAGEROOT/opt/munki"
 
 # copy in app_usage cleanup scripts
 if [ -d "$MUNKIROOT/code/tools/pkgresources/app_usage_cleanup_scripts/" ] ; then
-    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/app_usage_cleanup_scripts/" "$APPUSAGEROOT/usr/local/munki/cleanup/"
+    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/app_usage_cleanup_scripts/" "$APPUSAGEROOT/opt/munki/cleanup/"
 fi
 
 # Create package info file.
@@ -628,20 +628,20 @@ echo "Creating python package source..."
 # Create directory structure.
 PYTHONROOT="$PKGTMP/munki_python"
 mkdir -m 1775 "$PYTHONROOT"
-mkdir -p "$PYTHONROOT/usr/local/munki"
+mkdir -p "$PYTHONROOT/opt/munki"
 chmod -R 755 "$PYTHONROOT/usr"
 # Copy framework
-cp -R "$MUNKIROOT/Python.framework" "$PYTHONROOT/usr/local/munki/"
+cp -R "$MUNKIROOT/Python.framework" "$PYTHONROOT/opt/munki/"
 # Create symlink
-ln -s Python.framework/Versions/Current/bin/python3 "$PYTHONROOT/usr/local/munki/munki-python"
+ln -s Python.framework/Versions/Current/bin/python3 "$PYTHONROOT/opt/munki/munki-python"
 
 # Set permissions.
-chmod -R go-w "$PYTHONROOT/usr/local/munki"
-chmod +x "$PYTHONROOT/usr/local/munki"
+chmod -R go-w "$PYTHONROOT/opt/munki"
+chmod +x "$PYTHONROOT/opt/munki"
 
 # copy in python cleanup scripts
 if [ -d "$MUNKIROOT/code/tools/pkgresources/python_cleanup_scripts/" ] ; then
-    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/python_cleanup_scripts/" "$PYTHONROOT/usr/local/munki/cleanup/"
+    rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/python_cleanup_scripts/" "$PYTHONROOT/opt/munki/cleanup/"
 fi
 
 # Create package info file.
@@ -664,7 +664,7 @@ if [ "$BOOTSTRAPPKG" == "YES" ] ;  then
 
     # copy in bootstrap cleanup scripts
     if [ -d "$MUNKIROOT/code/tools/pkgresources/bootstrap_cleanup_scripts/" ] ; then
-        rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/bootstrap_cleanup_scripts/" "$BOOTSTRAPROOT/usr/local/munki/cleanup/"
+        rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/bootstrap_cleanup_scripts/" "$BOOTSTRAPROOT/opt/munki/cleanup/"
     fi
 
     # Create package info file.
@@ -688,7 +688,7 @@ if [ "$CONFPKG" == "YES" ] ; then
 
     # copy in config cleanup scripts
     if [ -d "$MUNKIROOT/code/tools/pkgresources/config_cleanup_scripts/" ] ; then
-        rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/config_cleanup_scripts/" "$CONFROOT/usr/local/munki/cleanup/"
+        rsync -a --exclude '*.pyc' --exclude '.DS_Store' "$MUNKIROOT/code/tools/pkgresources/config_cleanup_scripts/" "$CONFROOT/opt/munki/cleanup/"
     fi
 
     # Create package info file.

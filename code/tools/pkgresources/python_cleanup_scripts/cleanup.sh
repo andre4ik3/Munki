@@ -2,15 +2,15 @@
 
 set -e
 
-if [ -f "/usr/local/munki/python" ]; then
-    /bin/rm /usr/local/munki/python
+if [ -f "/opt/munki/python" ]; then
+    /bin/rm /opt/munki/python
 fi
 
-if [ -d "/usr/local/munki/Python.framework/Versions/3.7" ]; then
-    /bin/rm -r /usr/local/munki/Python.framework/Versions/3.7
+if [ -d "/opt/munki/Python.framework/Versions/3.7" ]; then
+    /bin/rm -r /opt/munki/Python.framework/Versions/3.7
 fi
 
-if [ -d "/usr/local/munki/Python.framework/Versions/3.8" ]; then
-    /bin/rm -r /usr/local/munki/Python.framework/Versions/3.8
+if [ -d "/opt/munki/Python.framework/Versions/3.8" ]; then
+    /bin/rm -r /opt/munki/Python.framework/Versions/3.8
 fi
 

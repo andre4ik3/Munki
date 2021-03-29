@@ -6,7 +6,7 @@
 	<string>dev.andre4ik3.managed.munki.logouthelper</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/local/munki/logouthelper</string>
+		<string>/opt/munki/logouthelper</string>
 	</array>
 </dict>
 </plist>

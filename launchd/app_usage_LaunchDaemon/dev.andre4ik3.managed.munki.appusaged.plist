@@ -6,7 +6,7 @@
 	<string>dev.andre4ik3.managed.munki.appusaged</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/local/munki/appusaged</string>
+		<string>/opt/munki/appusaged</string>
 	</array>
 	<key>Sockets</key>
 	<dict>
