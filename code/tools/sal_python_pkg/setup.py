@@ -13,7 +13,7 @@ setup(
     install_requires=[
         'pyobjc >= 6.2.2 ; platform_system=="Darwin"',
         'macsesh >= 0.3.0 ; platform_system=="Darwin"',
-        "urllib3 ==1.25.10",
+        "urllib3 ==1.26.5",
         "requests >= 2.23.0",
     ],
     packages=["sal"],
